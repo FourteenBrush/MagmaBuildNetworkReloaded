@@ -5,7 +5,7 @@ import org.apache.commons.lang.Validate;
 import java.util.UUID;
 
 public class StatisticsProfile {
-    private final UUID uuid;
+    private final UUID id;
     private int playtime;
     private int level;
     private long lastUpdate;
@@ -15,16 +15,16 @@ public class StatisticsProfile {
         this(uuid, 0, 0, System.currentTimeMillis());
     }
 
-    public StatisticsProfile(UUID uuid, int playTime, int level, long firstJoin) {
-        this.uuid = uuid;
+    public StatisticsProfile(UUID id, int playTime, int level, long firstJoin) {
+        this.id = id;
         this.playtime = playTime;
         this.level = level;
         this.firstJoin = firstJoin;
         lastUpdate = System.currentTimeMillis();
     }
 
-    public UUID getUuid() {
-        return uuid;
+    public UUID getId() {
+        return id;
     }
 
     public int getPlaytime() {

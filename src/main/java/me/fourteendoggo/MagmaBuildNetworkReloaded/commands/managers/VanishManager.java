@@ -4,7 +4,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
-import org.bukkit.entity.Player;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -18,9 +17,5 @@ public class VanishManager {
         vanished = new HashSet<>();
         bossBar = Bukkit.createBossBar("Vanished", BarColor.BLUE, BarStyle.SOLID);
         bossBar.setProgress(1);
-    }
-
-    public void toggle(Player player) {
-
     }
 }

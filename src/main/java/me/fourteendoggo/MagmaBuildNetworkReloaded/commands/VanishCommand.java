@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 public class VanishCommand extends CommandHandler {
 
     public VanishCommand(MBNPlugin plugin) {
-        super(plugin, "vanish", "vanish");
+        super(plugin, "vanish", "vanish", true);
     }
 
     @Override

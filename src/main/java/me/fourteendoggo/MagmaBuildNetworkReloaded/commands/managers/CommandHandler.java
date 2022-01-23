@@ -9,17 +9,18 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 
 public abstract class CommandHandler implements CommandExecutor, TabCompleter {
-    protected final MBNPlugin plugin;
+    protected static MBNPlugin plugin;
     private final String permission;
     protected CommandSender sender;
     protected Player executor;
 
     @SuppressWarnings("all")
     public CommandHandler(MBNPlugin plugin, String cmd, String permission, boolean tabComplete) {
-        this.plugin = plugin;
+        CommandHandler.plugin = plugin;
         this.permission = permission;
         if (tabComplete) {
             Bukkit.getPluginCommand(cmd).setTabCompleter(this);
@@ -32,7 +33,7 @@ public abstract class CommandHandler implements CommandExecutor, TabCompleter {
         try {
             return execute(args);
         } catch (Exception e) {
-            plugin.getLogger().severe("An error occurred whilst executing command " + cmd.getName());
+            plugin.getLogger().severe("An error occurred whilst executing command " + cmd.getName() + ": " + e.getMessage());
             e.printStackTrace();
         }
         return false;
@@ -58,8 +59,10 @@ public abstract class CommandHandler implements CommandExecutor, TabCompleter {
     }
 
     protected List<String> onTabComplete() {
-        return null;
+        return Collections.emptyList();
     }
 
     protected abstract boolean execute(@NotNull String[] args);
+
+    protected abstract boolean execute();
 }

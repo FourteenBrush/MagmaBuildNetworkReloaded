@@ -32,10 +32,10 @@ public class User {
     }
 
     public UUID getId() {
-        return statisticsProfile.getUuid();
+        return statisticsProfile.getId();
     }
 
-    private Player getPlayer() {
+    public Player getPlayer() {
         return Bukkit.getPlayer(getId());
     }
 
@@ -49,10 +49,6 @@ public class User {
 
     public MembershipProfile getMembershipProfile() {
         return membershipProfile;
-    }
-
-    public boolean isOnline() {
-        return getPlayer() == null;
     }
 
     public boolean hasPermission(String permission) {

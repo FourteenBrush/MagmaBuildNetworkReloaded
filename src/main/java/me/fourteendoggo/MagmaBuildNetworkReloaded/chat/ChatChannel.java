@@ -50,8 +50,15 @@ public class ChatChannel {
     }
 
     public boolean join(User user, boolean showMessage) {
-        if (joinedUsers.contains(user)) return false;
-
+        if (joinedUsers.contains(user)) {
+            user.sendMessage();
+            return false;
+        }
+        if (!whitelist.contains(user.getId())) {
+            user.sendMessage();
+            return false;
+        }
+        user.getChatProfile().addChannel(this);
         return true;
     }
 
