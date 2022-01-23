@@ -1,7 +1,6 @@
 package me.fourteendoggo.MagmaBuildNetworkReloaded;
 
 import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.DelegatingStorage;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.Storage;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.StorageType;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.connection.ConnectionFactory;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.impl.MySqlUserStorage;
@@ -30,7 +29,7 @@ public class MBNPlugin extends JavaPlugin {
         if (type == StorageType.MYSQL) {
             return new DelegatingStorage<>(new MySqlUserStorage(connectionFactory), getLogger());
         } else if (type == StorageType.YAML) {
-
+            // todo
         }
     }
 
