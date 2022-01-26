@@ -2,6 +2,7 @@ package me.fourteendoggo.MagmaBuildNetworkReloaded.chat;
 
 import com.google.common.collect.ImmutableList;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.user.User;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Lang;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Utils;
 import org.apache.commons.lang.Validate;
 
@@ -45,20 +46,31 @@ public class ChatChannel {
         return password;
     }
 
+    public boolean hasPassword() {
+        return password != null && !password.isEmpty();
+    }
+
     public ChannelRank getDefaultRank() {
         return defaultRank;
     }
 
     public boolean join(User user, boolean showMessage) {
         if (joinedUsers.contains(user)) {
-            user.sendMessage();
+            user.sendMessage(Lang.CHANNEL_ALREADY_JOINED.get());
+            return false;
+        }
+        if (!user.hasPermission(joinPermission)) {
+            user.sendMessage(Lang.NO_PERMISSION.get());
             return false;
         }
         if (!whitelist.contains(user.getId())) {
-            user.sendMessage();
+            user.sendMessage(Lang.CHANNEL_NOT_WHITELISTED.get());
             return false;
         }
         user.getChatProfile().addChannel(this);
+        if (showMessage) {
+            user.sendMessage(Lang.CHANNEL_JOINED.get(getPrefix()));
+        }
         return true;
     }
 

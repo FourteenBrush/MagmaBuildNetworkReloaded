@@ -14,4 +14,9 @@ public class VanishCommand extends CommandHandler {
     protected boolean execute(@NotNull String[] args) {
         return false;
     }
+
+    @Override
+    protected boolean execute() {
+        return false;
+    }
 }

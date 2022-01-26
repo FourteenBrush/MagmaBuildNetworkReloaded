@@ -1,0 +1,10 @@
+name: MagmaBuildNetworkReloaded
+main: me.fourteendoggo.MagmaBuildNetworkReloaded.MBNPlugin
+version: 1.0
+author: FourteenDoggo
+description: Recoded the MagmaBuildNetwork plugin
+
+commands:
+  magmabuildnetworkreloaded:
+    description: main command
+    aliases: [mbn]

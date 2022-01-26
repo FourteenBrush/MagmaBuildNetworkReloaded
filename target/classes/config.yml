@@ -1,0 +1,7 @@
+database:
+  # accepted values: 'mysql' and 'h2'
+  type: 'h2'
+  host: 'localhost'
+  port: 3306
+  name: 'minecraft'
+  user: 'password'

@@ -1,14 +1,27 @@
 package me.fourteendoggo.MagmaBuildNetworkReloaded.storage;
 
-public interface Storage<K, V> {
+import me.fourteendoggo.MagmaBuildNetworkReloaded.chat.ChatChannel;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.user.User;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Home;
+
+import java.util.Collection;
+import java.util.UUID;
+
+public interface Storage {
 
     StorageType getStorageType();
 
-    void init() throws Exception;
-
-    V load(K id);
-
-    void save(V data);
+    void initialize();
 
     void close();
+
+    User loadUser(UUID id);
+
+    void saveUser(User user);
+
+    ChatChannel loadChatChannel(String name);
+
+    void saveChatChannel(ChatChannel channel);
+
+    Collection<Home> loadHomes(UUID user, String name);
 }

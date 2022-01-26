@@ -2,8 +2,8 @@ package me.fourteendoggo.MagmaBuildNetworkReloaded.storage;
 
 public enum StorageType {
 
-    YAML("YAML"),
-    MYSQL("MySQL");
+    MYSQL("MySQL"),
+    H2("H2");
 
     private final String name;
 
