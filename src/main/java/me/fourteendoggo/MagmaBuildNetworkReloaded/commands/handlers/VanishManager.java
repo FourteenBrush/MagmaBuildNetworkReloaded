@@ -1,4 +1,4 @@
-package me.fourteendoggo.MagmaBuildNetworkReloaded.commands.managers;
+package me.fourteendoggo.MagmaBuildNetworkReloaded.commands.handlers;
 
 import org.bukkit.Bukkit;
 import org.bukkit.boss.BarColor;

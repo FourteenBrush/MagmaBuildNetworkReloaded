@@ -15,6 +15,8 @@ public interface Storage {
 
     void close();
 
+    default void convert(StorageType from, StorageType to) {}
+
     User loadUser(UUID id);
 
     void saveUser(User user);

@@ -55,7 +55,7 @@ public class UserRepository implements Cache<UUID, User> {
     @Override
     public int cleanup() {
         int sizeBefore = size();
-        userMap.entrySet().removeIf(entry -> entry.getValue().getPlayer() == null);
+        userMap.entrySet().removeIf(entry -> !entry.getValue().isOnline());
         return size() - sizeBefore;
     }
 

@@ -13,8 +13,11 @@ public enum Lang {
     NO_CONSOLE("no-console", "&cI'm sorry but the console cannot execute this!"),
     CHANNEL_ALREADY_JOINED("channel.already-joined", "&cYou are already in that channel!"),
     CHANNEL_NOT_WHITELISTED("channel.not-whitelisted", "&cYou are not on the whitelist of that channel!"),
-    CHANNEL_JOINED("channel.joined", ChatColor.of("#83c916") + "You joined {0}", false);
+    CHANNEL_JOINED("channel.joined", messageColor() + "You joined {0}", false),
+    CHANNEL_NOT_JOINED("channel.not-joined", "&cYou are not in that channel!"),
+    CHANNEL_LEFT("channel.left", messageColor() + "You left the channel {0}");
 
+    private static final ChatColor messageColor = ChatColor.of("#83c916");
     private final String path;
     private final String fallback;
     private final boolean needsColoring;
@@ -59,5 +62,9 @@ public enum Lang {
                 l.value = real;
             }
         }
+    }
+
+    private static ChatColor messageColor() {
+        return messageColor;
     }
 }

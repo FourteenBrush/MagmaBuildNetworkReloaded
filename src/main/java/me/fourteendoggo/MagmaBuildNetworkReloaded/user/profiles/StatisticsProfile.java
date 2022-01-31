@@ -2,6 +2,7 @@ package me.fourteendoggo.MagmaBuildNetworkReloaded.user.profiles;
 
 import org.apache.commons.lang.Validate;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class StatisticsProfile {
@@ -61,5 +62,18 @@ public class StatisticsProfile {
     public void setLastUpdate(long lastUpdate) {
         Validate.isTrue(lastUpdate > 0, "Last update time must be bigger than 0");
         this.lastUpdate = lastUpdate;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        StatisticsProfile that = (StatisticsProfile) o;
+        return playtime == that.playtime && level == that.level && lastUpdate == that.lastUpdate && firstJoin == that.firstJoin && id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, playtime, level, lastUpdate, firstJoin);
     }
 }

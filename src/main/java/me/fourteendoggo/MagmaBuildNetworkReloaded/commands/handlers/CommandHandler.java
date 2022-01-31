@@ -1,4 +1,4 @@
-package me.fourteendoggo.MagmaBuildNetworkReloaded.commands.managers;
+package me.fourteendoggo.MagmaBuildNetworkReloaded.commands.handlers;
 
 import me.fourteendoggo.MagmaBuildNetworkReloaded.MBNPlugin;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.IConsoleCommand;
@@ -13,14 +13,13 @@ import java.util.Collections;
 import java.util.List;
 
 public abstract class CommandHandler implements CommandExecutor, TabCompleter {
-    protected static MBNPlugin plugin;
+    protected MBNPlugin plugin;
     private final String permission;
     protected CommandSender sender;
     protected Player executor;
 
-    @SuppressWarnings("all")
     public CommandHandler(MBNPlugin plugin, String cmd, String permission, boolean tabComplete) {
-        CommandHandler.plugin = plugin;
+        this.plugin = plugin;
         this.permission = permission;
         if (tabComplete) {
             Bukkit.getPluginCommand(cmd).setTabCompleter(this);
@@ -63,6 +62,4 @@ public abstract class CommandHandler implements CommandExecutor, TabCompleter {
     }
 
     protected abstract boolean execute(@NotNull String[] args);
-
-    protected abstract boolean execute();
 }

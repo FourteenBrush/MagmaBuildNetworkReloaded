@@ -4,7 +4,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.MBNPlugin;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.StorageType;
 
-import java.nio.file.Path;
+import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.MessageFormat;
@@ -21,8 +21,9 @@ public class ConnectionFactory {
         if (type == StorageType.MYSQL) {
             jdbcUrl = MessageFormat.format("jdbc:mysql://{0}:{1}/{2}", address, port, dbName);
         } else { // fallback
-            Path path = plugin.getDataFolder().toPath().resolve("database");
-            jdbcUrl = MessageFormat.format("jdbc:h2:file:./{0}", path);
+            dataSource.setDriverClassName("org.h2.Driver");
+            File file = new File(plugin.getDataFolder(), "database.h2");
+            jdbcUrl = "jdbc:h2:file:" + file.getAbsolutePath();
         }
         dataSource.setJdbcUrl(jdbcUrl);
         dataSource.setMaximumPoolSize(10);
@@ -33,7 +34,6 @@ public class ConnectionFactory {
         dataSource.addDataSourceProperty("cachePrepStmts", true);
         dataSource.addDataSourceProperty("prepStmtCacheSize", 250);
         dataSource.addDataSourceProperty("prepStmtCacheSqlLimit", 2048);
-        // dataSource.addDataSourceProperty("allowPublicKeyRetrieval", true);
     }
 
     public static ConnectionFactory create(MBNPlugin plugin, StorageType type) {
@@ -45,7 +45,7 @@ public class ConnectionFactory {
     }
 
     public void close() {
-        if (!dataSource.isClosed()) { // check to be sure
+        if (dataSource != null && !dataSource.isClosed()) { // check to be sure
             dataSource.close();
         }
     }

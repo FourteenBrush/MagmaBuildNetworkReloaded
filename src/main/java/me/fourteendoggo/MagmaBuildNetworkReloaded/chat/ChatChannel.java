@@ -10,7 +10,7 @@ import java.util.*;
 
 public class ChatChannel {
     private final String name;
-    private final String prefix;
+    private final String displayName;
     private final String joinPermission;
     private String password;
     private final ChannelRank defaultRank;
@@ -18,11 +18,11 @@ public class ChatChannel {
     private final Set<UUID> whitelist;
     private final List<String> motd;
 
-    public ChatChannel(String name, String prefix, String joinPermission, ChannelRank defaultRank) {
-        Validate.isTrue(name.length() < 21);
-        Validate.isTrue(prefix.length() < 21);
+    public ChatChannel(String name, String displayName, String joinPermission, ChannelRank defaultRank) {
+        Validate.isTrue(name.length() < 30);
+        Validate.isTrue(displayName.length() < 30);
         this.name = name;
-        this.prefix = Utils.colorize(prefix);
+        this.displayName = Utils.colorize(displayName);
         this.joinPermission = joinPermission;
         this.defaultRank = defaultRank;
         this.joinedUsers = new HashSet<>();
@@ -34,8 +34,8 @@ public class ChatChannel {
         return name;
     }
 
-    public String getPrefix() {
-        return prefix;
+    public String getDisplayName() {
+        return displayName;
     }
 
     public boolean canJoin(User user) {
@@ -69,12 +69,20 @@ public class ChatChannel {
         }
         user.getChatProfile().addChannel(this);
         if (showMessage) {
-            user.sendMessage(Lang.CHANNEL_JOINED.get(getPrefix()));
+            user.sendMessage(Lang.CHANNEL_JOINED.get(getDisplayName()));
         }
         return true;
     }
 
     public boolean leave(User user, boolean showMessage) {
+        if (!joinedUsers.remove(user)) {
+            user.sendMessage(Lang.CHANNEL_NOT_JOINED.get());
+            return false;
+        }
+        user.getChatProfile().removeChannel(this);
+        if (showMessage) {
+            user.sendMessage(Lang.CHANNEL_LEFT.get(getDisplayName()));
+        }
         return true;
     }
 

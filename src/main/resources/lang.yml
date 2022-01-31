@@ -1,0 +1,8 @@
+no-permission: "&cI'm sorry but you don't have permission to do that!"
+no-console: "&cI'm sorry but the console cannot execute this!"
+channel:
+  already-joined: "&cYou are already in that channel!"
+  not-whitelisted: "&cYou are not on the whitelist of that channel!"
+  joined: "#83c916You joined {0}"
+  not-joined: "&cYou are not in that channel!"
+  left: "#83c916You left the channel {0}"

@@ -6,7 +6,8 @@ public enum Permission {
 
     ADMIN("magmabuildnetwork.permissions.admin"),
     MODERATOR("magmabuildnetwork.permissions.moderator"),
-    SEE_VANISHED("magmabuildnetwork.permissions.see-vanished");
+    SEE_VANISHED("magmabuildnetwork.permissions.see-vanished"),
+    DEFAULT("magmabuildnetwork.permissions.default");
 
     private final String permission;
 
@@ -21,5 +22,10 @@ public enum Permission {
     public boolean hasOr(Player player, String permission) {
         if (has(player)) return true;
         return player.hasPermission(permission);
+    }
+
+    @Override
+    public String toString() {
+        return permission;
     }
 }

@@ -13,9 +13,10 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Team;
 
 import java.text.DecimalFormat;
+import java.util.Objects;
 import java.util.UUID;
 
-public class User {
+public class User implements IUser {
     private final BukkitRunnable actionbar;
     private final ChatProfile chatProfile;
     private final StatisticsProfile statisticsProfile;
@@ -31,22 +32,29 @@ public class User {
         disableCollision();
     }
 
+    @Override
     public UUID getId() {
         return statisticsProfile.getId();
     }
 
-    public Player getPlayer() {
+    private Player getPlayer() {
         return Bukkit.getPlayer(getId());
+    }
+
+    public boolean isOnline() {
+        return getPlayer().isOnline();
     }
 
     public ChatProfile getChatProfile() {
         return chatProfile;
     }
 
+    @Override
     public StatisticsProfile getStatisticsProfile() {
         return statisticsProfile;
     }
 
+    @Override
     public MembershipProfile getMembershipProfile() {
         return membershipProfile;
     }
@@ -69,14 +77,17 @@ public class User {
         }
     }
 
+    @Override
     public void sendMessage(String message) {
         getPlayer().sendMessage(Utils.colorize(message));
     }
 
+    @Override
     public void login(MBNPlugin plugin) {
         actionbar.runTaskTimerAsynchronously(plugin, 20, 8);
     }
 
+    @Override
     public void logoutSafely() {
         actionbar.cancel();
     }
@@ -89,6 +100,19 @@ public class User {
         }
         team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
         team.addEntry(player.getName());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(chatProfile, user.chatProfile) && Objects.equals(statisticsProfile, user.statisticsProfile) && Objects.equals(membershipProfile, user.membershipProfile);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId(), chatProfile, statisticsProfile, membershipProfile);
     }
 
     private class Actionbar extends BukkitRunnable {

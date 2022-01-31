@@ -8,3 +8,5 @@ commands:
   magmabuildnetworkreloaded:
     description: main command
     aliases: [mbn]
+  demo:
+    description: idk

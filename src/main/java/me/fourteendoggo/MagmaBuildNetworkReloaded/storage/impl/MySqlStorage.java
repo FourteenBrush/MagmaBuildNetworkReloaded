@@ -40,8 +40,8 @@ public class MySqlStorage implements Storage {
                 "level int," +
                 "last_update bigint," +
                 "first_join bigint," +
-                "kingdom varchar(40)" +
-                "kingdom_rank varchar(40)" +
+                "kingdom varchar(40)," +
+                "kingdom_rank varchar(40)," +
                 "primary key(uuid));";
         try (Connection conn = connectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(query)) {
