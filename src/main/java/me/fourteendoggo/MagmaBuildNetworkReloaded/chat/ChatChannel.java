@@ -9,7 +9,7 @@ import org.apache.commons.lang.Validate;
 import java.util.*;
 
 public class ChatChannel {
-    private final String name;
+    private final String name; // identifier
     private final String displayName;
     private final String joinPermission;
     private String password;
@@ -40,6 +40,10 @@ public class ChatChannel {
 
     public boolean canJoin(User user) {
         return user.hasPermission(joinPermission) && whitelist.contains(user.getId());
+    }
+
+    public boolean whitelist(UUID userId) {
+        return whitelist.add(userId);
     }
 
     public String getPassword() {
@@ -86,7 +90,22 @@ public class ChatChannel {
         return true;
     }
 
+    public boolean setAsCurrentFor(User user) {
+        ChatChannel currentChannel = user.getChatProfile().getCurrentChannel();
+        if (currentChannel != null && currentChannel.getName().equals(getName())) return false;
+        if (!user.getChatProfile().isInChannel(this)) {
+            join(user, false);
+        }
+        user.getChatProfile().setCurrentChannel(this);
+        user.sendMessage(Lang.CHANNEL_SET_CURRENT.get(getDisplayName()));
+        return true;
+    }
+
     public List<String> getMotd() {
         return ImmutableList.copyOf(motd);
+    }
+
+    public void setMotdLine(int line, String str) {
+        motd.add(line, str);
     }
 }

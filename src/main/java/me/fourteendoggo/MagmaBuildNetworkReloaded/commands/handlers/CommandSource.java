@@ -24,10 +24,6 @@ public class CommandSource {
         return Optional.empty();
     }
 
-    public boolean isPlayer() {
-        return sender instanceof Player;
-    }
-
     public void sendMessage(String message) {
         sender.sendMessage(Utils.colorize(message));
     }

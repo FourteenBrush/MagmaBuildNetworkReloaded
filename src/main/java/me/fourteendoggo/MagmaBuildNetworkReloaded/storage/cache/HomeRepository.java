@@ -1,64 +1,80 @@
 package me.fourteendoggo.MagmaBuildNetworkReloaded.storage.cache;
 
+import me.fourteendoggo.MagmaBuildNetworkReloaded.MBNPlugin;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.Cache;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Entry;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Home;
-import org.bukkit.craftbukkit.libs.org.apache.commons.lang3.tuple.Pair;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Iterator;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
-public class HomeRepository implements Cache<Pair<UUID, String>, Home> {
+public class HomeRepository implements Cache<Entry<UUID, String>, Home> {
+    private final Map<Entry<UUID, String>, Home> homesMap;
 
-    @Override
-    public Optional<Home> get(Pair<UUID, String> key) {
-        return Optional.empty();
+    public HomeRepository(MBNPlugin plugin) {
+        homesMap = new HashMap<>();
+        Bukkit.getScheduler().runTaskTimer(plugin, this::cleanup, 20, 20 * 60 * 5); // cleanup every 5 minutes
     }
 
     @Override
-    public boolean has(Pair<UUID, String> key) {
-        return false;
+    public Optional<Home> get(Entry<UUID, String> key) {
+        return Optional.ofNullable(homesMap.get(key));
     }
 
     @Override
-    public void cache(Pair<UUID, String> key, Home data) {
-
+    public boolean has(Entry<UUID, String> key) {
+        return homesMap.containsKey(key);
     }
 
     @Override
-    public void cache(Pair<UUID, String> key, Home data, boolean overrideOlder) {
-
+    public void cache(Entry<UUID, String> key, Home data) {
+        cache(key, data, false);
     }
 
     @Override
-    public void remove(Pair<UUID, String> key) {
+    public void cache(Entry<UUID, String> key, Home data, boolean overrideOlder) {
+        if (overrideOlder) {
+            homesMap.put(key, data);
+        } else {
+            homesMap.putIfAbsent(key, data);
+        }
+    }
 
+    @Override
+    public void remove(Entry<UUID, String> key) {
+        homesMap.remove(key);
     }
 
     @Override
     public void removeByValue(Home value) {
-
+        homesMap.entrySet().removeIf(entry -> entry.getValue().equals(value));
     }
 
     @Override
     public void clear() {
-
+        homesMap.clear();
     }
 
     @Override
     public int cleanup() {
-        return 0;
+        int sizeBefore = size();
+        homesMap.entrySet().removeIf(entry -> {
+            Player player = Bukkit.getPlayer(entry.getKey().getKey());
+            return player == null || !player.isOnline();
+        });
+        return sizeBefore - size();
     }
 
     @Override
     public int size() {
-        return 0;
+        return homesMap.size();
     }
 
     @NotNull
     @Override
     public Iterator<Home> iterator() {
-        return null;
+        return homesMap.values().iterator();
     }
 }

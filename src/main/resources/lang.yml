@@ -6,3 +6,4 @@ channel:
   joined: "#83c916You joined {0}"
   not-joined: "&cYou are not in that channel!"
   left: "#83c916You left the channel {0}"
+  set-as-current: "#83c916You set {0} as your current channel"

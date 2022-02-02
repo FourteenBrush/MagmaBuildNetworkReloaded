@@ -14,21 +14,21 @@ public class ConnectionFactory {
 
     private ConnectionFactory(MBNPlugin plugin, StorageType type) {
         this.dataSource = new HikariDataSource();
-        String address = plugin.getConfig().getString("database.host", "localhost");
-        int port = plugin.getConfig().getInt("database.port", 3306);
-        String dbName = plugin.getConfig().getString("database.name", "minecraft");
         String jdbcUrl;
         if (type == StorageType.MYSQL) {
+            String address = plugin.getConfig().getString("database.host", "localhost");
+            int port = plugin.getConfig().getInt("database.port", 3306);
+            String dbName = plugin.getConfig().getString("database.name", "minecraft");
             jdbcUrl = MessageFormat.format("jdbc:mysql://{0}:{1}/{2}", address, port, dbName);
-        } else { // fallback
-            dataSource.setDriverClassName("org.h2.Driver");
+            dataSource.setUsername(plugin.getConfig().getString("database.user", "mc"));
+            dataSource.setPassword(plugin.getConfig().getString("database.password", "password"));
+        } else { // fallback h2
             File file = new File(plugin.getDataFolder(), "database.h2");
             jdbcUrl = "jdbc:h2:file:" + file.getAbsolutePath();
+            dataSource.setDriverClassName("org.h2.Driver");
         }
         dataSource.setJdbcUrl(jdbcUrl);
         dataSource.setMaximumPoolSize(10);
-        dataSource.setUsername(plugin.getConfig().getString("database.user", "mc"));
-        dataSource.setPassword(plugin.getConfig().getString("database.password", "password"));
         dataSource.setPoolName("mbn - hikari pool");
         dataSource.addDataSourceProperty("useSSL", false);
         dataSource.addDataSourceProperty("cachePrepStmts", true);
@@ -45,7 +45,7 @@ public class ConnectionFactory {
     }
 
     public void close() {
-        if (dataSource != null && !dataSource.isClosed()) { // check to be sure
+        if (dataSource != null && !dataSource.isClosed()) { // check to be sure in case of exceptions
             dataSource.close();
         }
     }

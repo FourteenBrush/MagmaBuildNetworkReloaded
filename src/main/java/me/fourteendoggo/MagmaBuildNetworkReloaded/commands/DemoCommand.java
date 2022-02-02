@@ -17,7 +17,7 @@ public class DemoCommand extends CommandBase {
     }
 
     @Override
-    protected CommandResult execute(CommandSource source, @NotNull String[] args) {
+    protected @NotNull CommandResult execute(CommandSource source, @NotNull String[] args) {
         source.getPlayer().ifPresent(player -> player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 20, 2)));
         source.getPlayer().ifPresent(player -> player.sendMessage(Lang.CHANNEL_JOINED.get("test")));
         if (!source.isPlayer()) {
@@ -27,7 +27,7 @@ public class DemoCommand extends CommandBase {
     }
 
     @Override
-    protected String getUsage() {
+    protected @NotNull String getUsage() {
         return "&athis is the description of the demo command idk";
     }
 }

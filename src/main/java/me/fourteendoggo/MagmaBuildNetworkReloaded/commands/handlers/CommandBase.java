@@ -44,6 +44,7 @@ public abstract class CommandBase implements CommandExecutor, TabCompleter {
             switch (result) {
                 case NO_PERMISSION:
                     sender.sendMessage(Lang.NO_PERMISSION.get());
+                    break;
                 case PLAYER_ONLY:
                     sender.sendMessage(Lang.NO_CONSOLE.get());
                     break;
@@ -65,7 +66,9 @@ public abstract class CommandBase implements CommandExecutor, TabCompleter {
         return Collections.emptyList();
     }
 
+    @NotNull
     protected abstract CommandResult execute(CommandSource source, @NotNull String[] args);
 
+    @NotNull
     protected abstract String getUsage();
 }

@@ -3,10 +3,13 @@ package me.fourteendoggo.MagmaBuildNetworkReloaded.storage;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.chat.ChatChannel;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.user.User;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Home;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ForkJoinPool;
 import java.util.logging.Logger;
 
 public class DelegatingStorage {
@@ -45,44 +48,23 @@ public class DelegatingStorage {
         }
     }
 
-    public CompletableFuture<User> loadUser(UUID id) {
-        return CompletableFuture.supplyAsync(() -> storage.loadUser(id));
+    public CompletableFuture<@Nullable User> loadUser(UUID id) {
+        return CompletableFuture.supplyAsync(() -> storage.loadUser(id), executor);
     }
 
     public CompletableFuture<Void> saveUser(User user) {
-        return CompletableFuture.runAsync(() -> storage.saveUser(user));
+        return CompletableFuture.runAsync(() -> storage.saveUser(user), executor);
     }
 
-    public CompletableFuture<ChatChannel> loadChatChannel(String name) {
-        return CompletableFuture.supplyAsync(() -> storage.loadChatChannel(name));
+    public CompletableFuture<@Nullable ChatChannel> loadChatChannel(String name) {
+        return CompletableFuture.supplyAsync(() -> storage.loadChatChannel(name), executor);
     }
 
     public CompletableFuture<Void> saveChatChannel(ChatChannel channel) {
-        return CompletableFuture.runAsync(() -> storage.saveChatChannel(channel));
+        return CompletableFuture.runAsync(() -> storage.saveChatChannel(channel), executor);
     }
 
     public CompletableFuture<Collection<Home>> loadHomes(UUID user, String name) {
-        return CompletableFuture.supplyAsync(() -> storage.loadHomes(user, name));
-    }
-
-
-    private <T> CompletableFuture<T> makeFuture(Callable<T> supplier) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return supplier.call();
-            } catch (Exception e) {
-                throw new CompletionException(e);
-            }
-        }, executor);
-    }
-
-    private CompletableFuture<Void> makeFuture(Runnable runnable) {
-        return CompletableFuture.runAsync(() -> {
-            try {
-                runnable.run();
-            } catch (Exception e) {
-                throw new CompletionException(e);
-            }
-        }, executor);
+        return CompletableFuture.supplyAsync(() -> storage.loadHomes(user, name), executor);
     }
 }

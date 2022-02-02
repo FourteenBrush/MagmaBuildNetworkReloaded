@@ -4,7 +4,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.chat.ChannelRank;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.chat.ChatChannel;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.user.User;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,14 +13,14 @@ import java.util.concurrent.TimeUnit;
 public class ChatProfile {
     private static final Cache<UUID, Object> chatCache = CacheBuilder.newBuilder()
             .expireAfterWrite(800, TimeUnit.MILLISECONDS).build();
-    private final User user;
+    private final UUID userId;
     /* Assuming that the current channel is also present in the channels */
     private final Map<ChatChannel, ChannelRank> chatChannels;
     private ChatChannel currentChannel;
     private boolean muted;
 
-    public ChatProfile(User user) {
-        this.user = user;
+    public ChatProfile(UUID userId) {
+        this.userId = userId;
         this.chatChannels = new HashMap<>();
     }
 
@@ -30,10 +29,6 @@ public class ChatProfile {
     }
 
     public void setCurrentChannel(ChatChannel channel) {
-        chatChannels.computeIfAbsent(channel, c -> {
-            channel.join(user, false);
-            return channel.getDefaultRank();
-        });
         currentChannel = channel;
     }
 
@@ -66,6 +61,8 @@ public class ChatProfile {
     }
 
     public boolean mayChat() {
-        return !muted && getRank(currentChannel) != ChannelRank.LISTENER && chatCache.getIfPresent(user.getId()) != null;
+        return !muted && getRank(currentChannel) != ChannelRank.LISTENER && chatCache.getIfPresent(userId) != null;
     }
+
+    // todo override equals and hashcode
 }

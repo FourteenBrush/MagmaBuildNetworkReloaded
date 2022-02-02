@@ -15,7 +15,18 @@ public enum Lang {
     CHANNEL_NOT_WHITELISTED("channel.not-whitelisted", "&cYou are not on the whitelist of that channel!"),
     CHANNEL_JOINED("channel.joined", messageColor() + "You joined {0}", false),
     CHANNEL_NOT_JOINED("channel.not-joined", "&cYou are not in that channel!"),
-    CHANNEL_LEFT("channel.left", messageColor() + "You left the channel {0}");
+    CHANNEL_LEFT("channel.left", messageColor() + "You left the channel {0}", false),
+    CHANNEL_SET_CURRENT("channel.set-as-current", messageColor() + "You set {0} as your current channel", false),
+
+    /* command help messages */
+
+    HOME_COMMAND_HELP("command-help.home", "&e------------ &7[&eHome Command&7] &e------------" +
+            "&7Below is a list of all home commands:" +
+            "  &6/home create <name> &7- &6Creates a new home" +
+            "  &6/home remove <name> &7- &6Removes the home with that name" +
+            "  &6/home list &7- &6Shows a list of all your homes" +
+            "  &6/home teleport <name> &7- &6Teleports you to the home with that name" +
+            "  &6/home help &7- &6Shows this message");
 
     private static final ChatColor messageColor = ChatColor.of("#83c916");
     private final String path;
@@ -51,9 +62,10 @@ public enum Lang {
         }
         FileConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         for (Lang l : values()) {
+            if (l.name().endsWith("HELP")) continue; // command help messages cannot be overridden
             String real = yaml.getString(l.path);
             if (real == null || real.isEmpty()) {
-                plugin.getLogger().warning("Missing or empty lang data found on path " + l.path + ", using fallback");
+                plugin.getLogger().warning("Missing or empty lang data found on path " + l.path + ", using fallback (" + l.fallback + ")");
                 real = l.fallback;
             }
             if (l.needsColoring) {

@@ -9,6 +9,7 @@ import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Home;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
@@ -59,6 +60,16 @@ public class MySqlStorage implements Storage {
 
     @Override
     public User loadUser(UUID id) {
+        try (Connection conn = connectionFactory.getConnection();
+             PreparedStatement ps = conn.prepareStatement()) {
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+
+            }
+        } catch (SQLException e) {
+            logger.severe("Failed to load user from the database (" + getStorageType() + ")");
+            e.printStackTrace();
+        }
         return null;
     }
 

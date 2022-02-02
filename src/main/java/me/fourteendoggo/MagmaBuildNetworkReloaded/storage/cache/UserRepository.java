@@ -25,7 +25,7 @@ public class UserRepository implements Cache<UUID, User> {
 
     @Override
     public void cache(UUID key, User data) {
-        userMap.putIfAbsent(key, data);
+        cache(key, data, false);
     }
 
     @Override
@@ -33,7 +33,7 @@ public class UserRepository implements Cache<UUID, User> {
         if (overrideOlder) {
             userMap.put(key, data);
         } else {
-            cache(key, data);
+            userMap.putIfAbsent(key, data);
         }
     }
 
