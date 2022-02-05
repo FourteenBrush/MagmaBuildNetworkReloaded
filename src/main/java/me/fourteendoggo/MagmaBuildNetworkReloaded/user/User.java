@@ -4,6 +4,7 @@ import me.fourteendoggo.MagmaBuildNetworkReloaded.MBNPlugin;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.user.profiles.ChatProfile;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.user.profiles.MembershipProfile;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.user.profiles.StatisticsProfile;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Permission;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Utils;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -20,8 +21,12 @@ public class User implements IUser {
     private final BukkitRunnable actionbar;
     private final ChatProfile chatProfile;
     private final StatisticsProfile statisticsProfile;
-    private final MembershipProfile membershipProfile;
+    private MembershipProfile membershipProfile;
     private boolean vanished;
+
+    public User(ChatProfile chatProfile, StatisticsProfile statisticsProfile) {
+        this(chatProfile, statisticsProfile, null);
+    }
 
     public User(ChatProfile chatprofile, StatisticsProfile statisticsProfile, MembershipProfile membershipProfile) {
         this.actionbar = new Actionbar();
@@ -45,6 +50,10 @@ public class User implements IUser {
         return getPlayer().isOnline();
     }
 
+    public boolean hasPermission(Permission permission) {
+        return permission.has(getPlayer());
+    }
+
     public ChatProfile getChatProfile() {
         return chatProfile;
     }
@@ -57,6 +66,10 @@ public class User implements IUser {
     @Override
     public MembershipProfile getMembershipProfile() {
         return membershipProfile;
+    }
+
+    public void setMembershipProfile(MembershipProfile membershipProfile) {
+        this.membershipProfile = membershipProfile;
     }
 
     public boolean hasPermission(String permission) {

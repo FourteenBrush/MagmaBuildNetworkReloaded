@@ -1,6 +1,7 @@
 package me.fourteendoggo.MagmaBuildNetworkReloaded.storage;
 
 import me.fourteendoggo.MagmaBuildNetworkReloaded.chat.ChatChannel;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.kingdom.Kingdom;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.user.User;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Home;
 
@@ -17,6 +18,8 @@ public interface Storage {
 
     default void convert(StorageType from, StorageType to) {}
 
+    User createNewUser(UUID id);
+
     User loadUser(UUID id);
 
     void saveUser(User user);
@@ -25,5 +28,7 @@ public interface Storage {
 
     void saveChatChannel(ChatChannel channel);
 
-    Collection<Home> loadHomes(UUID user, String name);
+    Collection<Home> loadHomes(UUID user);
+
+    Kingdom loadKingdom(String name);
 }

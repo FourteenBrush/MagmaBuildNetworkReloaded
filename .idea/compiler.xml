@@ -6,10 +6,13 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="MagmaBuildNetworkReloaded" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="MagmaBuildNetworkReloaded" target="8" />
+      <module name="MagmaBuildNetworkReloaded (1)" target="8" />
+      <module name="MagmaBuildNetworkReloaded (2)" target="8" />
     </bytecodeTargetLevel>
   </component>
 </project>

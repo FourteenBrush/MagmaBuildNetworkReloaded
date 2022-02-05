@@ -10,10 +10,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
-import java.util.logging.Logger;
 
 public class DelegatingStorage {
-    private final Logger logger;
     private final Storage storage;
     private final Executor executor = new ForkJoinPool(
             Runtime.getRuntime().availableProcessors() * 2,
@@ -21,9 +19,8 @@ public class DelegatingStorage {
             (t, e) -> e.printStackTrace(),
             false);
 
-    public DelegatingStorage(Storage storage, Logger logger) {
+    public DelegatingStorage(Storage storage) {
         this.storage = storage;
-        this.logger = logger;
     }
 
     public StorageType getStorageType() {
@@ -31,21 +28,15 @@ public class DelegatingStorage {
     }
 
     public void initialize() {
-        try {
-            storage.initialize();
-        } catch (Exception e) {
-            logger.severe("Failed to initialize storage");
-            e.printStackTrace();
-        }
+        storage.initialize();
     }
 
     public void close() {
-        try {
-            storage.close();
-        } catch (Exception e) {
-            logger.severe("Failed to close storage");
-            e.printStackTrace();
-        }
+        storage.close();
+    }
+
+    public CompletableFuture<User> createNewUser(UUID id) {
+        return CompletableFuture.supplyAsync(() -> storage.createNewUser(id), executor);
     }
 
     public CompletableFuture<@Nullable User> loadUser(UUID id) {
@@ -64,7 +55,7 @@ public class DelegatingStorage {
         return CompletableFuture.runAsync(() -> storage.saveChatChannel(channel), executor);
     }
 
-    public CompletableFuture<Collection<Home>> loadHomes(UUID user, String name) {
-        return CompletableFuture.supplyAsync(() -> storage.loadHomes(user, name), executor);
+    public CompletableFuture<Collection<Home>> loadHomes(UUID user) {
+        return CompletableFuture.supplyAsync(() -> storage.loadHomes(user), executor);
     }
 }

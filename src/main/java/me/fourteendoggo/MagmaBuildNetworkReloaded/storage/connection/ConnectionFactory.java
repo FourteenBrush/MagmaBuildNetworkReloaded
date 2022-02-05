@@ -22,11 +22,11 @@ public class ConnectionFactory {
             jdbcUrl = MessageFormat.format("jdbc:mysql://{0}:{1}/{2}", address, port, dbName);
             dataSource.setUsername(plugin.getConfig().getString("database.user", "mc"));
             dataSource.setPassword(plugin.getConfig().getString("database.password", "password"));
-        } else { // fallback h2
+        } else { // h2 fallback, file creation is handled by either h2 or hikari itself
             File file = new File(plugin.getDataFolder(), "database.h2");
             jdbcUrl = "jdbc:h2:file:" + file.getAbsolutePath();
             dataSource.setDriverClassName("org.h2.Driver");
-        }
+        } // todo add support for other databases
         dataSource.setJdbcUrl(jdbcUrl);
         dataSource.setMaximumPoolSize(10);
         dataSource.setPoolName("mbn - hikari pool");
@@ -45,7 +45,7 @@ public class ConnectionFactory {
     }
 
     public void close() {
-        if (dataSource != null && !dataSource.isClosed()) { // check to be sure in case of exceptions
+        if (dataSource != null && !dataSource.isClosed()) { // to prevent (further) exceptions
             dataSource.close();
         }
     }

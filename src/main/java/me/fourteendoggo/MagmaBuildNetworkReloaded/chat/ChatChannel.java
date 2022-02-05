@@ -50,6 +50,10 @@ public class ChatChannel {
         return password;
     }
 
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
     public boolean hasPassword() {
         return password != null && !password.isEmpty();
     }
@@ -99,6 +103,13 @@ public class ChatChannel {
         user.getChatProfile().setCurrentChannel(this);
         user.sendMessage(Lang.CHANNEL_SET_CURRENT.get(getDisplayName()));
         return true;
+    }
+
+    public void sendMessage(String message) {
+        message = Utils.colorize(message);
+        for (User user : joinedUsers) {
+            user.sendMessage(message);
+        }
     }
 
     public List<String> getMotd() {

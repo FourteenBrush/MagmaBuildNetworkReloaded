@@ -10,7 +10,7 @@ public class Home {
     private final Location location;
     private final UUID owner;
 
-    public Home(String name, Location location, UUID owner) {
+    public Home(String name, UUID owner, Location location) {
         this.name = name;
         this.location = location;
         this.owner = owner;

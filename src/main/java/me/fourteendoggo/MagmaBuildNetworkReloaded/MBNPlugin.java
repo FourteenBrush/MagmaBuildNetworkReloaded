@@ -1,6 +1,5 @@
 package me.fourteendoggo.MagmaBuildNetworkReloaded;
 
-import me.fourteendoggo.MagmaBuildNetworkReloaded.commands.DemoCommand;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.DelegatingStorage;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.StorageType;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.connection.ConnectionFactory;
@@ -20,9 +19,8 @@ public class MBNPlugin extends JavaPlugin {
         getLogger().info("Using " + type.getName() + " storage");
         ConnectionFactory connectionFactory = ConnectionFactory.create(this, type);
         // todo type implementation
-        storage = new DelegatingStorage(new MySqlStorage(connectionFactory, getLogger()), getLogger());
+        storage = new DelegatingStorage(new MySqlStorage(connectionFactory, getLogger()));
         storage.initialize();
-        new DemoCommand(this);
     }
 
     @Override

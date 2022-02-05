@@ -42,6 +42,7 @@ public abstract class CommandBase implements CommandExecutor, TabCompleter {
         try {
             CommandResult result = execute(source, args);
             switch (result) {
+                // already handled above but it can occur that a command requires extra privileges
                 case NO_PERMISSION:
                     sender.sendMessage(Lang.NO_PERMISSION.get());
                     break;
