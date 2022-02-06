@@ -23,6 +23,25 @@ public class HomeRepository implements Cache<Entry<UUID, String>, Home> {
         return Optional.ofNullable(homesMap.get(key));
     }
 
+    public Set<Home> getAllFor(UUID id) {
+        Set<Home> homes = new HashSet<>();
+        forEach(home -> {
+            if (home.getOwner().equals(id))
+                homes.add(home);
+        });
+        return homes;
+    }
+
+    public Set<String> getAllNamesFor(UUID id) {
+        Set<String> homes = new HashSet<>();
+        forEach(home -> {
+            if (home.getOwner().equals(id)) {
+                homes.add(home.getName());
+            }
+        });
+        return homes;
+    }
+
     @Override
     public boolean has(Entry<UUID, String> key) {
         return homesMap.containsKey(key);

@@ -15,10 +15,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.jetbrains.annotations.Nullable;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -82,10 +79,24 @@ public class MySqlStorage implements Storage {
     }
 
     @Override
-    public User createNewUser(UUID id) {
-        ChatProfile chatProfile = new ChatProfile(id);
-        StatisticsProfile statisticsProfile = new StatisticsProfile(id);
-        return new User(chatProfile, statisticsProfile);
+    public void createNewUser(User user) {
+        String sql = "INSERT INTO users(uuid, playtime, level, last_update, first_join, kingdom, kingdom_rank) " +
+                "VALUES(?,?,?,?,?,?,?);";
+        try (Connection conn = connectionFactory.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, user.getId().toString());
+            ps.setInt(2, user.getStatisticsProfile().getPlaytime());
+            ps.setInt(3, user.getStatisticsProfile().getLevel());
+            long now = System.currentTimeMillis();
+            ps.setLong(4, now);
+            ps.setLong(5, now);
+            ps.setString(6, user.getMembershipProfile().getKingdom().getName());
+            ps.setString(7, user.getMembershipProfile().getKingdomRank().name());
+            ps.execute();
+        } catch (SQLException e) {
+            logger.severe("Failed to create a new user on the database, type: " + getStorageType());
+            e.printStackTrace();
+        }
     }
 
     @Nullable
@@ -127,9 +138,14 @@ public class MySqlStorage implements Storage {
             ps.setString(6, user.getId().toString());
             ps.execute();
         } catch (SQLException e) {
-            logger.severe("Failed to save an user to the database");
+            logger.severe("Failed to save an user to the database, type: " + getStorageType());
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void createNewChatChannel(ChatChannel channel) {
+
     }
 
     @Nullable
@@ -141,6 +157,36 @@ public class MySqlStorage implements Storage {
     @Override
     public void saveChatChannel(ChatChannel channel) {
 
+    }
+
+    @Override
+    public void deleteChatChannel(ChatChannel channel) {
+
+    }
+
+    @Override
+    public void createNewHome(Home home) {
+        String sql = "INSERT INTO homes(owner, location_x, location_y, location_z, location_pitch, " +
+                "location_yaw, location_world " +
+                "VALUES(?,?,?,?,?,?,?);";
+        try (Connection conn = connectionFactory.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, home.getOwner().toString());
+            ps.setDouble(2, home.getLocation().getX());
+            ps.setDouble(3, home.getLocation().getY());
+            ps.setDouble(4, home.getLocation().getZ());
+            ps.setFloat(5, home.getLocation().getPitch());
+            ps.setFloat(6, home.getLocation().getYaw());
+            if (home.getLocation().getWorld() != null) {
+                ps.setString(7, home.getLocation().getWorld().getName());
+            } else {
+                ps.setNull(7, Types.VARCHAR);
+            }
+            ps.execute();
+        } catch (SQLException e) {
+            logger.severe("Failed to create a new home on the database, type: " + getStorageType() + " user: " + home.getOwner());
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -162,15 +208,33 @@ public class MySqlStorage implements Storage {
                             loc));
                 }
         } catch (SQLException e) {
-            logger.severe("Failed to load homes for user " + user);
+            logger.severe("Failed to load homes from the database, type: " + getStorageType() + ", user: " + user);
             e.printStackTrace();
         }
         return homes;
+    }
+
+    @Override
+    public void deleteHome(Home home) {
+        String sql = "DELETE FROM homes WHERE user=?, name=?;";
+        try (Connection conn = connectionFactory.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, home.getOwner().toString());
+            ps.setString(2, home.getName());
+        } catch (SQLException e) {
+            logger.severe("Failed to delete home from the database, type: " + getStorageType() + ", user: " + home.getOwner());
+            e.printStackTrace();
+        }
     }
 
     @Nullable
     @Override
     public Kingdom loadKingdom(String name) {
         return null;
+    }
+
+    @Override
+    public void saveKingdom(String name) {
+
     }
 }

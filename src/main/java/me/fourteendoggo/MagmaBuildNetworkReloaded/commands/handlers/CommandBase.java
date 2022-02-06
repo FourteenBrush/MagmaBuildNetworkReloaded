@@ -13,7 +13,6 @@ import java.util.Collections;
 import java.util.List;
 
 public abstract class CommandBase implements CommandExecutor, TabCompleter {
-
     protected final MBNPlugin plugin;
     private final String permission;
 
@@ -38,24 +37,26 @@ public abstract class CommandBase implements CommandExecutor, TabCompleter {
             sender.sendMessage(Lang.NO_PERMISSION.get());
             return true;
         }
-        CommandSource source = new CommandSource(sender);
         try {
-            CommandResult result = execute(source, args);
+            CommandResult result = execute(new CommandSource(sender), args);
             switch (result) {
-                // already handled above but it can occur that a command requires extra privileges
+                // already handled above, but it can occur that a command requires extra privileges
                 case NO_PERMISSION:
                     sender.sendMessage(Lang.NO_PERMISSION.get());
                     break;
                 case PLAYER_ONLY:
                     sender.sendMessage(Lang.NO_CONSOLE.get());
                     break;
-                case BAD_ARGS:
+                case BAD_ARGS: // todo send message
                 case SHOW_USAGE:
                     sender.sendMessage(Utils.colorize(getUsage()));
                     break;
+                case TARGET_NOT_FOUND:
+                    sender.sendMessage(Lang.PLAYER_NOT_FOUND.get());
+                    break;
             }
         } catch (Exception e) {
-            plugin.getLogger().severe("An error occurred whilst executing command " + cmd.getName() + ": ");
+            plugin.getLogger().severe("An error occurred whilst executing command " + cmd.getName() + ":");
             e.printStackTrace();
         }
         return true;
@@ -63,11 +64,10 @@ public abstract class CommandBase implements CommandExecutor, TabCompleter {
 
     @Nullable
     @Override
-    public List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
         return Collections.emptyList();
     }
 
-    @NotNull
     protected abstract CommandResult execute(CommandSource source, @NotNull String[] args);
 
     @NotNull

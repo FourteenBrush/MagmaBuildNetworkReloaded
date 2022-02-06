@@ -18,13 +18,7 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPreLogin(AsyncPlayerPreLoginEvent event) {
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(event.getUniqueId());
-        if (!offlinePlayer.hasPlayedBefore()) {
-            plugin.getStorage().createNewUser(event.getUniqueId()).whenComplete((u, t) -> u.login(plugin));
-        } else {
-            plugin.getStorage().loadUser(event.getUniqueId()).whenComplete((user, throwable) -> {
-                plugin.getStorage();
-            });
-        }
+        // load the homes, kingdom, chatchannel
     }
 
     @EventHandler

@@ -1,7 +1,7 @@
 package me.fourteendoggo.MagmaBuildNetworkReloaded.utils;
 
+import net.md_5.bungee.api.ChatColor;
 import org.apache.commons.lang.Validate;
-import org.bukkit.ChatColor;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,13 +15,13 @@ public class Utils {
         return ChatColor.translateAlternateColorCodes('&', str);
     }
 
-    public static String colorizeHex(String str) {
+    public static String colorizeSupportHex(String str) {
         Matcher matcher = HEX_PATTERN.matcher(str);
         while (matcher.find()) {
             String color = str.substring(matcher.start(), matcher.end());
-
+            str = str.replace(color, ChatColor.of(color).toString());
         }
-        return ";";
+        return colorize(str);
     }
 
     public static boolean equals(Object... args) {

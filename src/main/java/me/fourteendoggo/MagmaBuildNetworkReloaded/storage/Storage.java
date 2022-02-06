@@ -7,7 +7,7 @@ import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Home;
 
 import java.util.Collection;
 import java.util.UUID;
-
+// new - load - save - delete
 public interface Storage {
 
     StorageType getStorageType();
@@ -18,17 +18,27 @@ public interface Storage {
 
     default void convert(StorageType from, StorageType to) {}
 
-    User createNewUser(UUID id);
+    void createNewUser(User user);
 
     User loadUser(UUID id);
 
     void saveUser(User user);
 
+    void createNewChatChannel(ChatChannel channel);
+
     ChatChannel loadChatChannel(String name);
 
     void saveChatChannel(ChatChannel channel);
 
+    void deleteChatChannel(ChatChannel channel);
+
+    void createNewHome(Home home);
+
     Collection<Home> loadHomes(UUID user);
 
+    void deleteHome(Home home);
+
     Kingdom loadKingdom(String name);
+
+    void saveKingdom(String name);
 }

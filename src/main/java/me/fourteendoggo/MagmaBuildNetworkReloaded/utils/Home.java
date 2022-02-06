@@ -29,15 +29,15 @@ public class Home {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(name, location, owner);
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Home home = (Home) o;
+        return name.equals(home.name) && location.equals(home.location) && owner.equals(home.owner);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (!(obj instanceof Home)) return false;
-        Home other = (Home) obj;
-        return Utils.equals(name, other.getName(), owner, other.getOwner(), location, other.getLocation());
+    public int hashCode() {
+        return Objects.hash(name, location, owner);
     }
 }

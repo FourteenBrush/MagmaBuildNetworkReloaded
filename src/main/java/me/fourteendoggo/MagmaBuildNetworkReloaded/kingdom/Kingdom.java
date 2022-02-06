@@ -22,4 +22,14 @@ public class Kingdom {
     public String getName() {
         return name;
     }
+
+    public KingdomType getKingdomType() {
+        return kingdomType;
+    }
+
+    public Location getSpawnLocation() {
+        return spawnLocation;
+    }
+
+
 }

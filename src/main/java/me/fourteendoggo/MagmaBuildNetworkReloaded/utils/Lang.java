@@ -12,15 +12,36 @@ public enum Lang {
 
     NO_PERMISSION("no-permission", "&cI'm sorry but you don't have permission to do that!"),
     NO_CONSOLE("no-console", "&cI'm sorry but the console cannot execute this!"),
+    JOIN_MESSAGE("join-message", "&7[&a&l+&7] &b{0} &7joined the server"),
+    LEAVE_MESSAGE("leave-message", "&7[&c&l-&7] &b{0} &7left the server"),
+    PLAYER_NOT_FOUND("player-not-found", "&cThat player cannot be found!"),
     CHANNEL_ALREADY_JOINED("channel.already-joined", "&cYou are already in that channel!"),
     CHANNEL_NOT_WHITELISTED("channel.not-whitelisted", "&cYou are not on the whitelist of that channel!"),
-    CHANNEL_JOINED("channel.joined", messageColor() + "You joined {0}", false),
+    CHANNEL_JOINED("channel.joined", messageColor() + "You joined {0}"),
     CHANNEL_NOT_JOINED("channel.not-joined", "&cYou are not in that channel!"),
-    CHANNEL_LEFT("channel.left", messageColor() + "You left the channel {0}", false),
-    CHANNEL_SET_CURRENT("channel.set-as-current", messageColor() + "You set {0} as your current channel", false),
+    CHANNEL_LEFT("channel.left", messageColor() + "You left the channel {0}"),
+    CHANNEL_SET_CURRENT("channel.set-as-current", messageColor() + "You set {0} as your current channel"),
+    VANISH_ENABLED("vanish.enabled", "&6You have been vanished"),
+    VANISH_ENABLED_BY_OTHER("vanish.enabled-by-other", "&6You have been vanished by {0}"),
+    VANISH_ENABLED_FOR_OTHER("vanish.disabled-for-other", messageColor() + "You vanished {0}"),
+    VANISH_DISABLED("vanish.disabled", "&6You are visible again"),
+    VANISH_DISABLED_BY_OTHER("vanish.disabled-by-other", "&6You have been un-vanished by {0}"),
+    VANISH_DISABLED_FOR_OTHER("vanish.disabled-for-other", messageColor() + "You un-vanished {0}"),
+    VANISH_ALREADY_VANISHED("vanish.already-vanished", "&cYou are already vanished!"),
+    VANISH_OTHER_ALREADY_VANISHED("vanish.other-already-vanished", "&cThat player is already vanished!"),
+    VANISH_ALREADY_VISIBLE("vanish.already-visible", "&cYou are already visible!"),
+    VANISH_OTHER_ALREADY_VISIBLE("vanish.other-already-visible", "&cThat player is already visible!"),
     VANISH_ANNOUNCE("vanish.announce", "&e{0} has vanished. Poof"),
-    VANISHED_BACK_VISIBLE_ANNOUNCE("vanish.back-visible-announce", "&e{0} has become visible"),
-    VANISHED_NO_PLAYERS_VANISHED("vanish.no-players-vanished", "&cThere are currently no vanished players online!"),
+    VANISH_BACK_VISIBLE_ANNOUNCE("vanish.back-visible-announce", "&e{0} has become visible"),
+    VANISH_NO_PLAYERS_VANISHED("vanish.no-players-vanished", "&cThere are currently no vanished players online!"),
+    HOME_LIMIT_REACHED("home.limit-reached", "&cYou have reached the maximum amount of homes you can have, you can try to delete one first!"),
+    HOME_CREATED_NEW("home.created-new", messageColor() + "You have created a new home, {0}"),
+    HOME_DELETED("home.deleted", messageColor() + "You've deleted your home, {0}"),
+    HOME_TELEPORTED_TO("home.teleported-to", messageColor() + "You teleported to your home, {0}"),
+    HOMES_NO_HOMES_SET("home.no-homes-created", "&cYou haven't created any homes!"),
+    HOME_NAME_NOT_FOUND("home.name-not-found", "&cYou have no home with that name!"),
+
+    ERROR_CREATING_HOME("error.creating-home", "&cSomething went wrong creating a home!"),
 
     /* command help messages */
 
@@ -31,32 +52,28 @@ public enum Lang {
             "  /home list &7- &6Shows a list of all your homes" +
             "  /home teleport <name> &7- &6Teleports you to the home with that name" +
             "  /home help &7- &6Shows this message"),
-
     VANISH_COMMAND_HELP("command.help.vanish", "&e------------ &7[&eVanish Command&7] &e------------" +
             "&7Below is a list of all vanish subcommands:" +
             "  &6/vanish <player> &7- &6Vanishes the mentioned player" +
+            "  /vanish enable [player] &7- &6Vanishes the mentioned player, or yourself" +
+            "  /vanish disable [player] &7- &6Un-vanishes the mentioned player, or yourself" +
             "  /vanish list &7- &6Shows a list of all the vanished players on the server" +
-            "  /vanish fakequit &7- &6Sends the server a fake leave message and vanishes you");
+            "  /vanish fakequit &7- &6Sends the server a fake leave message and vanishes you" +
+            "  /vanish fakejoin &7- &6Sends the server a fake join message and un-vanishes you");
 
     private static final ChatColor messageColor = ChatColor.of("#83c916");
     private final String path;
     private final String fallback;
-    private final boolean needsColoring;
     private String value;
 
     Lang(String path, String fallback) {
-        this(path, fallback, true);
-    }
-
-    Lang(String path, String fallback, boolean needsColoring) {
         this.path = path;
         this.fallback = fallback;
-        this.needsColoring = needsColoring;
     }
 
     public String get(String... args) {
         if (args.length > 0) {
-            String result = null;
+            String result = value;
             for (int i = 0; i < args.length; i++) {
                 result = value.replace("{" + i + "}", args[i]);
             }
@@ -75,13 +92,13 @@ public enum Lang {
         for (Lang l : values()) {
             if (l.name().endsWith("COMMAND_HELP")) continue; // command help messages cannot be overridden and aren't placed in the lang file either
             String real = yaml.getString(l.path);
-            if (real == null || real.isEmpty()) {
+            if (real == null || real.isEmpty() || real.trim().isEmpty()) {
                 plugin.getLogger().warning("Missing or empty lang data found on path " + l.path + ", using fallback (" + l.fallback + ")");
                 yaml.set(l.path, l.fallback);
                 real = l.fallback;
                 fileNeedsToBeSaved = true;
             }
-            l.value = l.needsColoring ? Utils.colorize(real) : real;
+            l.value = Utils.colorizeSupportHex(real);
         }
         if (fileNeedsToBeSaved) {
             try {

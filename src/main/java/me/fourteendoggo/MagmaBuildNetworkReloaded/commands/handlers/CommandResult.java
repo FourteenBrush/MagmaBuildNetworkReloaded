@@ -8,5 +8,6 @@ public enum CommandResult {
     BAD_ARGS,
     NO_PERMISSION,
     PLAYER_ONLY,
-    SHOW_USAGE
+    SHOW_USAGE,
+    TARGET_NOT_FOUND
 }
