@@ -1,7 +1,10 @@
+# accepted database types: 'h2' and 'mysql'
 database:
-  # accepted values: 'mysql' and 'h2'
   type: 'h2'
+  auto-convert: true
   host: 'localhost'
   port: 3306
   name: 'minecraft'
   user: 'password'
+vanish:
+  nightvision: true

@@ -66,6 +66,8 @@ public class VanishCommand extends CommandBase {
                     break;
                 default: return CommandResult.SHOW_USAGE;
             }
+        } else {
+            return CommandResult.SHOW_USAGE;
         }
         return CommandResult.SUCCESS;
     }

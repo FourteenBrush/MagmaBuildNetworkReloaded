@@ -8,5 +8,7 @@ commands:
   magmabuildnetworkreloaded:
     description: main command
     aliases: [mbn]
-  demo:
-    description: idk
+  home:
+    description: Provides an easy way to work with homes
+  vanish:
+    description: Provides an easy way to vanish

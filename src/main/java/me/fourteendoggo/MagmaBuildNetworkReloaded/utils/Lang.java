@@ -15,6 +15,8 @@ public enum Lang {
     JOIN_MESSAGE("join-message", "&7[&a&l+&7] &b{0} &7joined the server"),
     LEAVE_MESSAGE("leave-message", "&7[&c&l-&7] &b{0} &7left the server"),
     PLAYER_NOT_FOUND("player-not-found", "&cThat player cannot be found!"),
+    PLAYTIME("playtime", messageColor() + "Your playtime is {0} and the first time you joined the server was on {1}"),
+    PLAYTIME_OTHER("playtime-other", messageColor() + "{0}'s playtime is {1} and they joined the server for the first time on {2}"),
     CHANNEL_ALREADY_JOINED("channel.already-joined", "&cYou are already in that channel!"),
     CHANNEL_NOT_WHITELISTED("channel.not-whitelisted", "&cYou are not on the whitelist of that channel!"),
     CHANNEL_JOINED("channel.joined", messageColor() + "You joined {0}"),
@@ -42,6 +44,7 @@ public enum Lang {
     HOME_NAME_NOT_FOUND("home.name-not-found", "&cYou have no home with that name!"),
 
     ERROR_CREATING_HOME("error.creating-home", "&cSomething went wrong creating a home!"),
+    ERROR_DELETING_HOME("error.deleting-home", "&cSomething went wrong deleting a home!"),
 
     /* command help messages */
 
@@ -59,7 +62,10 @@ public enum Lang {
             "  /vanish disable [player] &7- &6Un-vanishes the mentioned player, or yourself" +
             "  /vanish list &7- &6Shows a list of all the vanished players on the server" +
             "  /vanish fakequit &7- &6Sends the server a fake leave message and vanishes you" +
-            "  /vanish fakejoin &7- &6Sends the server a fake join message and un-vanishes you");
+            "  /vanish fakejoin &7- &6Sends the server a fake join message and un-vanishes you"),
+    PLAYTIME_COMMAND_HELP("command.help.playtime", "&e------------ &7[&ePlaytime Command&7] &e------------" +
+            "&7Below is a list of all playtime subcommands:" +
+            "  &6/playtime <player> &7- &6Shows the playtime for the mentioned player, or yourself");
 
     private static final ChatColor messageColor = ChatColor.of("#83c916");
     private final String path;

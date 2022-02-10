@@ -19,9 +19,9 @@ import java.util.function.Function;
 public class HomeCommand extends CommandBase {
     private final HomeRepository homeRepository;
 
-    public HomeCommand(MBNPlugin plugin, HomeRepository homeRepository) {
+    public HomeCommand(MBNPlugin plugin) {
         super(plugin, "home", Permission.DEFAULT, true);
-        this.homeRepository = homeRepository;
+        homeRepository = new HomeRepository(plugin);
     }
 
     @Override
@@ -60,7 +60,7 @@ public class HomeCommand extends CommandBase {
             plugin.getStorage().createNewHome(home).whenComplete((v, t) -> {
                 from.sendMessage(Lang.HOME_CREATED_NEW.get(name));
                 homeRepository.cache(new Entry<>(from.getUniqueId(), name), home);
-            }).exceptionally(onException(from));
+            }).exceptionally(onException(from, Lang.ERROR_CREATING_HOME));
         }
     }
 
@@ -70,10 +70,20 @@ public class HomeCommand extends CommandBase {
             plugin.getStorage().deleteHome(home.get()).whenComplete((v, t) -> {
                 from.sendMessage(Lang.HOME_DELETED.get(name));
                 homeRepository.removeByValue(home.get());
-            }).exceptionally(onException(from));
+            }).exceptionally(onException(from, Lang.ERROR_DELETING_HOME));
         } else {
             from.sendMessage(Lang.HOME_NAME_NOT_FOUND.get());
         }
+    }
+
+    private Function<Throwable, Void> onException(Player player, Lang lang) {
+        return t -> {
+            String message = lang.get();
+            player.sendMessage(message);
+            plugin.getLogger().severe(message);
+            t.printStackTrace();
+            return null;
+        };
     }
 
     private void teleportToHome(String name, Player from) {
@@ -103,14 +113,6 @@ public class HomeCommand extends CommandBase {
             });
             from.sendMessage(Utils.colorize(builder.toString()));
         }
-    }
-
-    private Function<Throwable, Void> onException(Player player) {
-        return t -> {
-            player.sendMessage(Lang.ERROR_CREATING_HOME.get());
-            t.printStackTrace();
-            return null;
-        };
     }
 
     @Override

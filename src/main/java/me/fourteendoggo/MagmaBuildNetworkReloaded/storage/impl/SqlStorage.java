@@ -22,11 +22,11 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 
-public class MySqlStorage implements Storage {
+public class SqlStorage implements Storage {
     private final ConnectionFactory connectionFactory;
     private final Logger logger;
 
-    public MySqlStorage(ConnectionFactory connectionFactory, Logger logger) {
+    public SqlStorage(ConnectionFactory connectionFactory, Logger logger) {
         this.connectionFactory = connectionFactory;
         this.logger = logger;
     }

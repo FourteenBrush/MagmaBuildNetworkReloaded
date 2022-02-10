@@ -47,7 +47,7 @@ public class VanishManager {
             player.sendMessage(Lang.VANISH_ALREADY_VANISHED.get());
             return;
         }
-        handVanish(player);
+        handleVanish(player);
         if (showMessage) {
             player.sendMessage(Lang.VANISH_ENABLED.get());
         }
@@ -58,19 +58,19 @@ public class VanishManager {
             executor.sendMessage(Lang.VANISH_OTHER_ALREADY_VANISHED.get());
             return;
         }
-        handVanish(player);
+        handleVanish(player);
         if (showMessage) {
             player.sendMessage(Lang.VANISH_ENABLED_BY_OTHER.get(executor.getName()));
             executor.sendMessage(Lang.VANISH_ENABLED_FOR_OTHER.get(player.getName()));
         }
     }
 
-    private void handVanish(Player player) {
+    private void handleVanish(Player player) {
         Bukkit.getOnlinePlayers().forEach(p -> {
             if (!vanished.contains(p.getUniqueId())) {
                 p.hidePlayer(plugin, player);
             }
-            if (p != player && Permission.MODERATOR.has(p)) {
+            if (!p.equals(player) && Permission.MODERATOR.has(p)) {
                 p.sendMessage(Lang.VANISH_ANNOUNCE.get(player.getName()));
             }
         });
@@ -109,7 +109,7 @@ public class VanishManager {
     private void handleUnVanish(Player player) {
         Bukkit.getOnlinePlayers().forEach(p -> {
             p.showPlayer(plugin, player);
-            if (p != player && Permission.MODERATOR.has(p)) {
+            if (!p.equals(player) && Permission.MODERATOR.has(p)) {
                 p.sendMessage(Lang.VANISH_BACK_VISIBLE_ANNOUNCE.get(player.getName()));
             }
         });
@@ -156,6 +156,7 @@ public class VanishManager {
             vanished.forEach(uuid -> {
                 if (builder.length() > 0)
                     builder.append(", ");
+                // wont throw exception as uuid's of players are removed when they leave
                 builder.append(Bukkit.getPlayer(uuid).getName());
             });
             target.sendMessage(builder.toString());
@@ -170,7 +171,7 @@ public class VanishManager {
             String leaveMessage = Lang.LEAVE_MESSAGE.get(player.getName());
             player.sendMessage(leaveMessage);
             Bukkit.getOnlinePlayers().forEach(p -> {
-                if (p != player && Permission.MODERATOR.has(p)) {
+                if (!p.equals(player) && Permission.MODERATOR.has(p)) {
                     p.sendMessage(Lang.VANISH_ANNOUNCE.get(player.getName()));
                 } else {
                     p.sendMessage(leaveMessage);
@@ -187,7 +188,7 @@ public class VanishManager {
             String joinMessage = Lang.JOIN_MESSAGE.get(player.getName());
             player.sendMessage(joinMessage);
             Bukkit.getOnlinePlayers().forEach(p -> {
-                if (p != player && Permission.MODERATOR.has(p)) {
+                if (!p.equals(player) && Permission.MODERATOR.has(p)) {
                     p.sendMessage(Lang.VANISH_BACK_VISIBLE_ANNOUNCE.get(player.getName()));
                 } else {
                     p.sendMessage(joinMessage);
