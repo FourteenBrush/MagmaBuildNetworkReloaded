@@ -1,40 +1,29 @@
 package me.fourteendoggo.MagmaBuildNetworkReloaded.storage.cache;
 
 import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.Cache;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.user.User;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.user.NewUser;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class UserRepository implements Cache<UUID, User> {
-    private final Map<UUID, User> userMap;
-
-    public UserRepository() {
-        userMap = new HashMap<>();
-    }
+public class UserRepository implements Cache<UUID, NewUser> {
+    private final Map<UUID, NewUser> userMap = new HashMap<>();
 
     @Override
-    public Optional<User> get(UUID key) {
+    public Optional<NewUser> get(UUID key) {
         return Optional.ofNullable(userMap.get(key));
     }
 
     @Override
-    public boolean has(UUID key) {
+    public boolean contains(UUID key) {
         return userMap.containsKey(key);
     }
 
     @Override
-    public void cache(UUID key, User data) {
-        cache(key, data, false);
-    }
-
-    @Override
-    public void cache(UUID key, User data, boolean overrideOlder) {
-        if (overrideOlder) {
-            userMap.put(key, data);
-        } else {
-            userMap.putIfAbsent(key, data);
-        }
+    public void cache(UUID key, NewUser data) {
+        userMap.put(key, data);
     }
 
     @Override
@@ -43,8 +32,8 @@ public class UserRepository implements Cache<UUID, User> {
     }
 
     @Override
-    public void removeByValue(User value) {
-        userMap.entrySet().removeIf(entry -> entry.equals(value));
+    public void removeByValue(NewUser value) {
+        userMap.entrySet().removeIf(entry -> entry.getValue().equals(value));
     }
 
     @Override
@@ -55,7 +44,10 @@ public class UserRepository implements Cache<UUID, User> {
     @Override
     public int cleanup() {
         int sizeBefore = size();
-        userMap.entrySet().removeIf(entry -> !entry.getValue().isOnline());
+        userMap.entrySet().removeIf(entry -> {
+            Player player = Bukkit.getPlayer(entry.getKey());
+            return player == null || !player.isOnline();
+        });
         return size() - sizeBefore;
     }
 
@@ -66,7 +58,7 @@ public class UserRepository implements Cache<UUID, User> {
 
     @NotNull
     @Override
-    public Iterator<User> iterator() {
+    public Iterator<NewUser> iterator() {
         return userMap.values().iterator();
     }
 }

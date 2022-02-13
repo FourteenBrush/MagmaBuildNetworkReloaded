@@ -6,11 +6,9 @@ public interface Cache<K, V> extends Iterable<V> {
 
     Optional<V> get(K key);
 
-    boolean has(K key);
+    boolean contains(K key);
 
     void cache(K key, V data);
-
-    void cache(K key, V data, boolean overrideOlder);
 
     void remove(K key);
 

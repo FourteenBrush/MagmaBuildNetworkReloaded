@@ -22,7 +22,7 @@ public class KingdomRepository implements Cache<String, Kingdom> {
     }
 
     @Override
-    public boolean has(String key) {
+    public boolean contains(String key) {
         return kingdomMap.containsKey(key);
     }
 

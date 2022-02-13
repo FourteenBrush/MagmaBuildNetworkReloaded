@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.IOException;
 
 public enum Lang {
-
     NO_PERMISSION("no-permission", "&cI'm sorry but you don't have permission to do that!"),
     NO_CONSOLE("no-console", "&cI'm sorry but the console cannot execute this!"),
     JOIN_MESSAGE("join-message", "&7[&a&l+&7] &b{0} &7joined the server"),
@@ -46,7 +45,7 @@ public enum Lang {
     ERROR_CREATING_HOME("error.creating-home", "&cSomething went wrong creating a home!"),
     ERROR_DELETING_HOME("error.deleting-home", "&cSomething went wrong deleting a home!"),
 
-    /* command help messages */
+    /* command help messages ~ cannot be overridden */
 
     HOME_COMMAND_HELP("command-help.home", "&e------------ &7[&eHome Command&7] &e------------" +
             "&7Below is a list of all home subcommands:" +
@@ -68,6 +67,7 @@ public enum Lang {
             "  &6/playtime <player> &7- &6Shows the playtime for the mentioned player, or yourself");
 
     private static final ChatColor messageColor = ChatColor.of("#83c916");
+
     private final String path;
     private final String fallback;
     private String value;

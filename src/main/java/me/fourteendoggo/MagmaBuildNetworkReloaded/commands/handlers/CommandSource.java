@@ -6,20 +6,11 @@ import org.bukkit.entity.Player;
 
 import java.util.Optional;
 
-public class CommandSource {
-    private final CommandSender sender;
-
-    public CommandSource(CommandSender sender) {
-        this.sender = sender;
-    }
-
-    public CommandSender getSender() {
-        return sender;
-    }
+public record CommandSource(CommandSender sender) {
 
     public Optional<Player> getPlayer() {
-        if (sender instanceof Player) {
-            return Optional.of((Player) sender);
+        if (sender instanceof Player player) {
+            return Optional.of(player);
         }
         return Optional.empty();
     }

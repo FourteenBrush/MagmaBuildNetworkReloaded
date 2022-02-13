@@ -2,43 +2,43 @@ package me.fourteendoggo.MagmaBuildNetworkReloaded.storage;
 
 import me.fourteendoggo.MagmaBuildNetworkReloaded.chat.ChatChannel;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.kingdom.Kingdom;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.user.User;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Home;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.user.UserSnapshot;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.records.Home;
 
 import java.util.Collection;
 import java.util.UUID;
-// new - load - save - delete
-public interface Storage {
 
-    StorageType getStorageType();
+public interface Storage {
 
     void initialize();
 
     void close();
 
-    default void convert(StorageType from, StorageType to) {}
+    StorageType getType();
 
-    void createNewUser(User user);
+    UserSnapshot loadUser(UUID id);
 
-    User loadUser(UUID id);
+    void saveUser(UserSnapshot snapshot);
 
-    void saveUser(User user);
+    void createUser(UserSnapshot snapshot);
 
-    void createNewChatChannel(ChatChannel channel);
+    ChatChannel loadChannel(String name);
 
-    ChatChannel loadChatChannel(String name);
+    void saveChannel(ChatChannel channel);
 
-    void saveChatChannel(ChatChannel channel);
+    void createChannel(ChatChannel channel);
 
-    void deleteChatChannel(ChatChannel channel);
+    void deleteChannel(String name);
 
-    void createNewHome(Home home);
+    Collection<Home> loadHomes(UUID owner);
 
-    Collection<Home> loadHomes(UUID user);
+    void createHome(Home home);
 
     void deleteHome(Home home);
 
     Kingdom loadKingdom(String name);
 
-    void saveKingdom(String name);
+    void saveKingdom(Kingdom kingdom);
+
+    void createKingdom(Kingdom kingdom);
 }

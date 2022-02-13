@@ -2,16 +2,16 @@ package me.fourteendoggo.MagmaBuildNetworkReloaded.storage.cache;
 
 import me.fourteendoggo.MagmaBuildNetworkReloaded.MBNPlugin;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.Cache;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Entry;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Home;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.records.Home;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.records.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class HomeRepository implements Cache<Entry<UUID, String>, Home> {
-    private final Map<Entry<UUID, String>, Home> homesMap;
+public class HomeRepository implements Cache<Pair<UUID, String>, Home> {
+    private final Map<Pair<UUID, String>, Home> homesMap;
 
     public HomeRepository(MBNPlugin plugin) {
         homesMap = new HashMap<>();
@@ -19,7 +19,7 @@ public class HomeRepository implements Cache<Entry<UUID, String>, Home> {
     }
 
     @Override
-    public Optional<Home> get(Entry<UUID, String> key) {
+    public Optional<Home> get(Pair<UUID, String> key) {
         return Optional.ofNullable(homesMap.get(key));
     }
 
@@ -43,17 +43,17 @@ public class HomeRepository implements Cache<Entry<UUID, String>, Home> {
     }
 
     @Override
-    public boolean has(Entry<UUID, String> key) {
+    public boolean contains(Pair<UUID, String> key) {
         return homesMap.containsKey(key);
     }
 
     @Override
-    public void cache(Entry<UUID, String> key, Home data) {
+    public void cache(Pair<UUID, String> key, Home data) {
         cache(key, data, false);
     }
 
     @Override
-    public void cache(Entry<UUID, String> key, Home data, boolean overrideOlder) {
+    public void cache(Pair<UUID, String> key, Home data, boolean overrideOlder) {
         if (overrideOlder) {
             homesMap.put(key, data);
         } else {
@@ -62,7 +62,7 @@ public class HomeRepository implements Cache<Entry<UUID, String>, Home> {
     }
 
     @Override
-    public void remove(Entry<UUID, String> key) {
+    public void remove(Pair<UUID, String> key) {
         homesMap.remove(key);
     }
 

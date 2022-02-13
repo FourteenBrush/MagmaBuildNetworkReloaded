@@ -17,7 +17,7 @@ import java.text.DecimalFormat;
 import java.util.Objects;
 import java.util.UUID;
 
-public class User implements IUser {
+public class User {
     private final BukkitRunnable actionbar;
     private final ChatProfile chatProfile;
     private final StatisticsProfile statisticsProfile;
@@ -37,7 +37,6 @@ public class User implements IUser {
         disableCollision();
     }
 
-    @Override
     public UUID getId() {
         return statisticsProfile.getId();
     }
@@ -58,12 +57,10 @@ public class User implements IUser {
         return chatProfile;
     }
 
-    @Override
     public StatisticsProfile getStatisticsProfile() {
         return statisticsProfile;
     }
 
-    @Override
     public MembershipProfile getMembershipProfile() {
         return membershipProfile;
     }
@@ -90,17 +87,14 @@ public class User implements IUser {
         }
     }
 
-    @Override
     public void sendMessage(String message) {
         getPlayer().sendMessage(Utils.colorize(message));
     }
 
-    @Override
     public void login(MBNPlugin plugin) {
         actionbar.runTaskTimerAsynchronously(plugin, 20, 8);
     }
 
-    @Override
     public void logoutSafely() {
         actionbar.cancel();
     }

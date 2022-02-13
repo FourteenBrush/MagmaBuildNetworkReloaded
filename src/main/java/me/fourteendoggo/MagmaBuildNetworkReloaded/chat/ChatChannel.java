@@ -12,7 +12,7 @@ public class ChatChannel {
     private final String name; // identifier
     private final String displayName;
     private final String joinPermission;
-    private String password;
+    private String password = "";
     private final ChannelRank defaultRank;
     private final Set<User> joinedUsers;
     private final Set<UUID> whitelist;

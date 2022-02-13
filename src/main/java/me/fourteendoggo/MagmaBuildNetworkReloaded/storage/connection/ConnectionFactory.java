@@ -30,6 +30,7 @@ public class ConnectionFactory {
         dataSource.setJdbcUrl(jdbcUrl);
         dataSource.setMaximumPoolSize(10);
         dataSource.setPoolName("mbn - hikari pool");
+        dataSource.setConnectionTestQuery("SELECT 1");
         dataSource.addDataSourceProperty("useSSL", false);
         dataSource.addDataSourceProperty("cachePrepStmts", true);
         dataSource.addDataSourceProperty("prepStmtCacheSize", 250);

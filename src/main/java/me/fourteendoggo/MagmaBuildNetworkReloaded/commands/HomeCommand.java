@@ -5,32 +5,37 @@ import me.fourteendoggo.MagmaBuildNetworkReloaded.commands.handlers.CommandBase;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.commands.handlers.CommandResult;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.commands.handlers.CommandSource;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.cache.HomeRepository;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.*;
-import org.bukkit.command.Command;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Lang;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Permission;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Utils;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.records.Home;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.records.Pair;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 
 public class HomeCommand extends CommandBase {
     private final HomeRepository homeRepository;
 
     public HomeCommand(MBNPlugin plugin) {
-        super(plugin, "home", Permission.DEFAULT, true);
-        homeRepository = new HomeRepository(plugin);
+        super(plugin, Permission.DEFAULT);
+        homeRepository = plugin.getBaseRepository().getHomeRepository();
     }
 
     @Override
-    protected CommandResult execute(CommandSource source, @NotNull String[] args) {
-        if (!source.getPlayer().isPresent()) return CommandResult.PLAYER_ONLY;
+    protected CommandResult execute(CommandSource source, String[] args) {
+        if (source.getPlayer().isEmpty()) return CommandResult.PLAYER_ONLY;
         if (args.length == 2) {
             switch (args[0]) {
                 case "create":
-                    int homesLimit = Permission.MODERATOR.has(source.getPlayer().get()) ? 5 : 2;
+                    int homesLimit = plugin.getSettings().getHomesLimit(source.getPlayer().get());
                     createHome(args[1], source.getPlayer().get(), homesLimit);
                     break;
                 case "remove":
@@ -57,15 +62,15 @@ public class HomeCommand extends CommandBase {
             from.sendMessage(Lang.HOME_LIMIT_REACHED.get());
         } else {
             Home home = new Home(name, from.getUniqueId(), from.getLocation());
-            plugin.getStorage().createNewHome(home).whenComplete((v, t) -> {
+            plugin.getStorage().createHome(home).whenComplete((v, t) -> {
                 from.sendMessage(Lang.HOME_CREATED_NEW.get(name));
-                homeRepository.cache(new Entry<>(from.getUniqueId(), name), home);
+                homeRepository.cache(new Pair<>(from.getUniqueId(), name), home);
             }).exceptionally(onException(from, Lang.ERROR_CREATING_HOME));
         }
     }
 
     private void deleteHome(String name, Player from) {
-        Optional<Home> home = homeRepository.get(new Entry<>(from.getUniqueId(), name));
+        Optional<Home> home = homeRepository.get(new Pair<>(from.getUniqueId(), name));
         if (home.isPresent()) {
             plugin.getStorage().deleteHome(home.get()).whenComplete((v, t) -> {
                 from.sendMessage(Lang.HOME_DELETED.get(name));
@@ -87,9 +92,9 @@ public class HomeCommand extends CommandBase {
     }
 
     private void teleportToHome(String name, Player from) {
-        Optional<Home> home = homeRepository.get(new Entry<>(from.getUniqueId(), name));
+        Optional<Home> home = homeRepository.get(new Pair<>(from.getUniqueId(), name));
         if (home.isPresent()) {
-            from.teleport(home.get().getLocation());
+            from.teleport(home.get().location());
             from.sendMessage(Lang.HOME_TELEPORTED_TO.get(name));
         } else {
             from.sendMessage(Lang.HOME_NAME_NOT_FOUND.get());
@@ -108,28 +113,26 @@ public class HomeCommand extends CommandBase {
                 if (builder.length() > 0)
                     builder.append("\n");
                 builder.append(String.format("&6  %s: [x: %s, y: %s, z: %s]",
-                        home.getName(), (int)home.getLocation().getX(), (int)home.getLocation().getY(),
-                        (int)home.getLocation().getZ()));
+                        home.name(), (int)home.location().getX(), (int)home.location().getY(),
+                        (int)home.location().getZ()));
             });
             from.sendMessage(Utils.colorize(builder.toString()));
         }
     }
 
     @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
+    protected @Nullable List<String> onTabComplete(CommandSender sender, String[] args) {
         if (args.length == 1) {
-            return StringUtil.copyPartialMatches(args[0], Arrays.asList("create", "remove", "list", "teleport"), new ArrayList<>());
+            return tabcomplete(args[0], Arrays.asList("create", "remove", "list", "teleport"));
         } else if (args.length == 2) {
             switch (args[0]) {
-                case "remove":
-                case "delete":
-                case "teleport":
-                case "tp":
-                    Iterable<String> iterable = homeRepository.getAllNamesFor(((Player)sender).getUniqueId());
-                    return StringUtil.copyPartialMatches(args[1], iterable, new ArrayList<>());
+                case "remove", "delete", "teleport", "tp" -> {
+                    Iterable<String> iterable = homeRepository.getAllNamesFor(((Player) sender).getUniqueId());
+                    return tabcomplete(args[1], iterable);
+                }
             }
         }
-        return super.onTabComplete(sender, cmd, label, args);
+        return super.onTabComplete(sender, args);
     }
 
     @Override

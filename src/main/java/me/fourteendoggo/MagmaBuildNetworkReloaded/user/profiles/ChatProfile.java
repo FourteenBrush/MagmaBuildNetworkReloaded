@@ -7,17 +7,19 @@ import me.fourteendoggo.MagmaBuildNetworkReloaded.chat.ChatChannel;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class ChatProfile {
-    private static final Cache<UUID, Object> chatCache = CacheBuilder.newBuilder()
-            .expireAfterWrite(800, TimeUnit.MILLISECONDS).build();
+    private static final Cache<UUID, Object> chatCache =
+            CacheBuilder.newBuilder().expireAfterWrite(800, TimeUnit.MILLISECONDS).build();
+
     private final UUID userId;
     /* Assuming that the current channel is also present in the channels */
     private final Map<ChatChannel, ChannelRank> chatChannels;
-    private ChatChannel currentChannel;
-    private boolean muted;
+    private ChatChannel currentChannel = null;
+    private boolean muted = false;
 
     public ChatProfile(UUID userId) {
         this.userId = userId;
@@ -64,5 +66,16 @@ public class ChatProfile {
         return !muted && getRank(currentChannel) != ChannelRank.LISTENER && chatCache.getIfPresent(userId) != null;
     }
 
-    // todo override equals and hashcode
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ChatProfile that = (ChatProfile) o;
+        return muted == that.muted && userId.equals(that.userId) && chatChannels.size() == that.chatChannels.size() && Objects.equals(currentChannel, that.currentChannel);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(userId, chatChannels, currentChannel, muted);
+    }
 }

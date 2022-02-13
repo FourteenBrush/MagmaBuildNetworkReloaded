@@ -6,70 +6,39 @@ import me.fourteendoggo.MagmaBuildNetworkReloaded.kingdom.KingdomRank;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.Storage;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.StorageType;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.connection.ConnectionFactory;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.user.User;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.user.UserSnapshot;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.user.profiles.ChatProfile;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.user.profiles.MembershipProfile;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.user.profiles.StatisticsProfile;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Home;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Constants;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.records.Home;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Logger;
 
 public class SqlStorage implements Storage {
     private final ConnectionFactory connectionFactory;
-    private final Logger logger;
 
-    public SqlStorage(ConnectionFactory connectionFactory, Logger logger) {
+    public SqlStorage(ConnectionFactory connectionFactory) {
         this.connectionFactory = connectionFactory;
-        this.logger = logger;
-    }
-
-    @Override
-    public StorageType getStorageType() {
-        return StorageType.MYSQL;
     }
 
     @Override
     public void initialize() {
-        String[] queries = new String[3];
-        queries[0] = "CREATE TABLE IF NOT EXISTS users (" +
-                "uuid varchar(40)," +
-                "playtime int," +
-                "level int," +
-                "last_update bigint," +
-                "first_join bigint," +
-                "kingdom varchar(40)," +
-                "kingdom_rank varchar(40)," +
-                "primary key(uuid));";
-        queries[1] = "CREATE TABLE IF NOT EXISTS kingdoms (" +
-                "name varchar(40)," +
-                "kingdom_type varchar(40)";
-        queries[2] = "CREATE TABLE IF NOT EXISTS homes (" +
-                "name varchar(40), " +
-                "owner varchar(40), " +
-                "location_x DOUBLE, " +
-                "location_y DOUBLE, " +
-                "location_z DOUBLE, " +
-                "location_pitch FLOAT, " +
-                "location_yaw FLOAT, " +
-                "location_world VARCHAR(40), " +
-                "PRIMARY KEY(name, owner);";
         try (Connection conn = connectionFactory.getConnection()) {
-            for (String query : queries) {
+            for (String query : Constants.TABLES) {
                 try (PreparedStatement ps = conn.prepareStatement(query)) {
                     ps.execute();
                 }
             }
         } catch (SQLException e) {
-            logger.severe("Failed to initialize database, type: " + getStorageType());
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -79,98 +48,114 @@ public class SqlStorage implements Storage {
     }
 
     @Override
-    public void createNewUser(User user) {
-        String sql = "INSERT INTO users(uuid, playtime, level, last_update, first_join, kingdom, kingdom_rank) " +
-                "VALUES(?,?,?,?,?,?,?);";
-        try (Connection conn = connectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, user.getId().toString());
-            ps.setInt(2, user.getStatisticsProfile().getPlaytime());
-            ps.setInt(3, user.getStatisticsProfile().getLevel());
-            long now = System.currentTimeMillis();
-            ps.setLong(4, now);
-            ps.setLong(5, now);
-            ps.setString(6, user.getMembershipProfile().getKingdom().getName());
-            ps.setString(7, user.getMembershipProfile().getKingdomRank().name());
-            ps.execute();
-        } catch (SQLException e) {
-            logger.severe("Failed to create a new user on the database, type: " + getStorageType());
-            e.printStackTrace();
-        }
+    public StorageType getType() {
+        return StorageType.MYSQL; // or h2 but the implementation handles all sql languages the same
     }
 
-    @Nullable
     @Override
-    public User loadUser(UUID id) {
-        String sql = "SELECT * FROM users WHERE uuid=?;";
+    @Nullable
+    public UserSnapshot loadUser(UUID id) {
         try (Connection conn = connectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(Constants.LOAD_USER)) {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                ChatProfile chatProfile = new ChatProfile(id);
-                int playTime = rs.getInt("playtime");
-                int level = rs.getInt("level");
+                int playtime = rs.getInt("playtime");
+                int level = rs.getInt("player_level");
                 long firstJoin = rs.getLong("first_join");
-                StatisticsProfile statisticsProfile = new StatisticsProfile(id, playTime, level, firstJoin);
+                StatisticsProfile statisticsProfile = new StatisticsProfile(id, playtime, level, firstJoin);
                 String kingdom = rs.getString("kingdom");
                 KingdomRank kingdomRank = KingdomRank.fromString(rs.getString("kingdom_rank"));
                 MembershipProfile membershipProfile = new MembershipProfile(loadKingdom(kingdom), kingdomRank);
-                return new User(chatProfile, statisticsProfile, membershipProfile);
-
+                // TODO don't load kingdom, get it from cache
+                return new UserSnapshot(new ChatProfile(id), statisticsProfile, membershipProfile);
             }
         } catch (SQLException e) {
-            logger.severe("Failed to load user from the database, type: " + getStorageType());
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         return null;
     }
 
     @Override
-    public void saveUser(User user) {
-        String sql = "UPDATE users SET playtime=?, level=?, last_update=?, kingdom=?, kingdom_rank=? WHERE uuid=?;";
+    public void saveUser(UserSnapshot snapshot) {
         try (Connection conn = connectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, user.getStatisticsProfile().getPlaytime());
-            ps.setInt(2, user.getStatisticsProfile().getLevel());
+             PreparedStatement ps = conn.prepareStatement(Constants.SAVE_USER)) {
+            ps.setInt(1, snapshot.statisticsProfile().getPlaytime());
+            ps.setInt(2, snapshot.statisticsProfile().getLevel());
             ps.setLong(3, System.currentTimeMillis());
-            ps.setString(4, user.getMembershipProfile().getKingdom().getName());
-            ps.setString(5, user.getMembershipProfile().getKingdomRank().name());
-            ps.setString(6, user.getId().toString());
+            ps.setString(4, snapshot.membershipProfile().getKingdom().getName());
+            ps.setString(5, snapshot.membershipProfile().getKingdomRank().name());
+            ps.setString(6, snapshot.statisticsProfile().getId().toString());
             ps.execute();
         } catch (SQLException e) {
-            logger.severe("Failed to save an user to the database, type: " + getStorageType());
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
     @Override
-    public void createNewChatChannel(ChatChannel channel) {
-
+    public void createUser(UserSnapshot snapshot) {
+        try (Connection conn = connectionFactory.getConnection();
+             PreparedStatement ps = conn.prepareStatement(Constants.CREATE_USER)) {
+            ps.setString(1, snapshot.statisticsProfile().getId().toString());
+            ps.setInt(2, snapshot.statisticsProfile().getPlaytime());
+            ps.setInt(3, snapshot.statisticsProfile().getLevel());
+            long now = System.currentTimeMillis();
+            ps.setLong(4, now);
+            ps.setLong(5, now);
+            ps.setString(6, snapshot.membershipProfile().getKingdom().getName());
+            ps.setString(7, snapshot.membershipProfile().getKingdomRank().name());
+            ps.execute();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    @Nullable
     @Override
-    public ChatChannel loadChatChannel(String name) {
+    public ChatChannel loadChannel(String name) {
         return null;
     }
 
     @Override
-    public void saveChatChannel(ChatChannel channel) {
+    public void saveChannel(ChatChannel channel) {
 
     }
 
     @Override
-    public void deleteChatChannel(ChatChannel channel) {
+    public void createChannel(ChatChannel channel) {
 
     }
 
     @Override
-    public void createNewHome(Home home) {
-        String sql = "INSERT INTO homes(owner, location_x, location_y, location_z, location_pitch, " +
-                "location_yaw, location_world " +
-                "VALUES(?,?,?,?,?,?,?);";
+    public void deleteChannel(String name) {
+
+    }
+
+    @Override
+    public Collection<Home> loadHomes(UUID owner) {
+        Set<Home> homes = new HashSet<>();
         try (Connection conn = connectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(Constants.LOAD_HOMES)) {
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Location loc = new Location(Bukkit.getWorld(rs.getString("location_world")),
+                        rs.getDouble("location_x"),
+                        rs.getDouble("location_y"),
+                        rs.getDouble("location_z"),
+                        rs.getFloat("location_yaw"),
+                        rs.getFloat("location_pitch"));
+                homes.add(new Home(rs.getString("name"),
+                        UUID.fromString(rs.getString("owner")),
+                        loc));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return homes;
+    }
+
+    @Override
+    public void createHome(Home home) {
+        try (Connection conn = connectionFactory.getConnection();
+             PreparedStatement ps = conn.prepareStatement(Constants.CREATE_HOME)) {
             ps.setString(1, home.getOwner().toString());
             ps.setDouble(2, home.getLocation().getX());
             ps.setDouble(3, home.getLocation().getY());
@@ -184,57 +169,33 @@ public class SqlStorage implements Storage {
             }
             ps.execute();
         } catch (SQLException e) {
-            logger.severe("Failed to create a new home on the database, type: " + getStorageType() + " user: " + home.getOwner());
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-    }
-
-    @Override
-    public Collection<Home> loadHomes(UUID user) {
-        String sql = "SELECT * FROM homes WHERE user=?, name=?;";
-        List<Home> homes = new ArrayList<>();
-        try (Connection conn = connectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-                ResultSet rs = ps.executeQuery();
-                while (rs.next()) {
-                    Location loc = new Location(Bukkit.getWorld(rs.getString("location_world")),
-                            rs.getDouble("location_x"),
-                            rs.getDouble("location_y"),
-                            rs.getDouble("location_z"),
-                            rs.getFloat("location_yaw"),
-                            rs.getFloat("location_pitch"));
-                    homes.add(new Home(rs.getString("name"),
-                            UUID.fromString(rs.getString("owner")),
-                            loc));
-                }
-        } catch (SQLException e) {
-            logger.severe("Failed to load homes from the database, type: " + getStorageType() + ", user: " + user);
-            e.printStackTrace();
-        }
-        return homes;
     }
 
     @Override
     public void deleteHome(Home home) {
-        String sql = "DELETE FROM homes WHERE user=?, name=?;";
         try (Connection conn = connectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(Constants.DELETE_HOME)) {
             ps.setString(1, home.getOwner().toString());
             ps.setString(2, home.getName());
         } catch (SQLException e) {
-            logger.severe("Failed to delete home from the database, type: " + getStorageType() + ", user: " + home.getOwner());
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
-    @Nullable
     @Override
     public Kingdom loadKingdom(String name) {
         return null;
     }
 
     @Override
-    public void saveKingdom(String name) {
+    public void saveKingdom(Kingdom kingdom) {
+
+    }
+
+    @Override
+    public void createKingdom(Kingdom kingdom) {
 
     }
 }

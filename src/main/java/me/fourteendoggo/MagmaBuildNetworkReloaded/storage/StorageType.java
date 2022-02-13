@@ -2,13 +2,15 @@ package me.fourteendoggo.MagmaBuildNetworkReloaded.storage;
 
 public enum StorageType {
 
-    MYSQL("MySQL"),
-    H2("H2");
+    MYSQL("MySQL", "MySQL database online mode"),
+    H2("H2", "H2 database embedded mode");
 
     private final String name;
+    private final String description;
 
-    StorageType(String name) {
+    StorageType(String name, String description) {
         this.name = name;
+        this.description = description;
     }
 
     public static StorageType fromString(String str, StorageType fallback) {
@@ -22,5 +24,9 @@ public enum StorageType {
 
     public String getName() {
         return name;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }
