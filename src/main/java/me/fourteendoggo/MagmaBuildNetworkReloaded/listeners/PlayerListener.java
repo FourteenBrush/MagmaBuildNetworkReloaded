@@ -52,6 +52,7 @@ public class PlayerListener implements Listener {
             user.setSnapshot(snapshot);
             user.onDataLoadComplete(plugin);
             plugin.getData().cacheUser(user);
+            plugin.getLogger().info("users home size is " + snapshot.getHomesAmount());
         }
     }
 

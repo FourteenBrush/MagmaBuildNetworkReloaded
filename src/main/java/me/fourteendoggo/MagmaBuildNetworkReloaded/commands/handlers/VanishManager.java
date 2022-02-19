@@ -156,7 +156,7 @@ public class VanishManager {
             StringBuilder builder = new StringBuilder();
             builder.append(ChatColor.GOLD).append("Vanished players: ");
             vanished.forEach(uuid -> {
-                if (builder.length() > 13)
+                if (builder.length() > 19)
                     builder.append(", ");
                 // wont throw exception as uuid's of players are removed when they leave
                 builder.append(Bukkit.getPlayer(uuid).getName());

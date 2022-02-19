@@ -69,8 +69,9 @@ public class SqlStorage implements Storage {
                 StatisticsProfile statisticsProfile = new StatisticsProfile(id, playtime, level, firstJoin);
                 KingdomRank kingdomRank = KingdomRank.fromString(rs.getString("kingdom_rank"));
                 MembershipProfile membershipProfile = new MembershipProfile(new Kingdom("test", KingdomType.YEXORA, null), kingdomRank);
-                // TODO don't load kingdom, get it from cache, fix constructor
-                return new UserSnapshot(new ChatProfile(id), statisticsProfile, membershipProfile, loadHomes(id));
+                // TODO don't create random kingdom, get it from cache, fix constructor
+                Collection<Home> homes = loadHomes(id);
+                return new UserSnapshot(new ChatProfile(id), statisticsProfile, membershipProfile, homes);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -151,6 +152,7 @@ public class SqlStorage implements Storage {
                 homes.add(new Home(rs.getString("name"),
                         UUID.fromString(rs.getString("owner")),
                         loc));
+                Bukkit.getLogger().info("loaded home ");
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);

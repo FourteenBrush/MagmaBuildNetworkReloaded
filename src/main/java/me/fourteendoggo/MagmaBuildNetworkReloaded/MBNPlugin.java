@@ -14,7 +14,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class MBNPlugin extends JavaPlugin {
     private DelegatingStorage storage;
     private final Settings settings = new Settings();
-    private final RemoteDataCache remoteDataCache = new RemoteDataCache(this);
+    private final RemoteDataCache remoteDataCache = new RemoteDataCache();
 
     @Override
     public void onEnable() {
@@ -25,10 +25,12 @@ public class MBNPlugin extends JavaPlugin {
         getLogger().info("Using " + type.getName() + " storage");
         storage = new DelegatingStorage(getStorage(type, ConnectionFactory.create(this, type)), getLogger());
         storage.initialize();
+        remoteDataCache.startSaveTask(this);
         new HomeCommand(this).register("home", true);
         new VanishCommand(this).register("vanish", true);
         new PlaytimeCommand(this).register("playtime", false);
         Bukkit.getPluginManager().registerEvents(new PlayerListener(this), this);
+        getLogger().info("Finished initialisation");
     }
 
     private Storage getStorage(StorageType type, ConnectionFactory connectionFactory) {
