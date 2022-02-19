@@ -8,7 +8,6 @@ import me.fourteendoggo.MagmaBuildNetworkReloaded.commands.handlers.VanishManage
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Lang;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Permission;
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,7 +75,7 @@ public class VanishCommand extends CommandBase {
     }
 
     @Override
-    protected @Nullable List<String> onTabComplete(CommandSender sender, String[] args) {
+    protected @Nullable List<String> onTabComplete(CommandSource source, String[] args) {
         if (args.length == 0) {
             return null;
         }
@@ -84,7 +83,7 @@ public class VanishCommand extends CommandBase {
 
         }
         // TODO
-        return super.onTabComplete(sender, args);
+        return super.onTabComplete(source, args);
     }
 
     @Override

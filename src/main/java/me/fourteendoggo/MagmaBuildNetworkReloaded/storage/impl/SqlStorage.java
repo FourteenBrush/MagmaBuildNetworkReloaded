@@ -3,6 +3,7 @@ package me.fourteendoggo.MagmaBuildNetworkReloaded.storage.impl;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.chat.ChatChannel;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.kingdom.Kingdom;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.kingdom.KingdomRank;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.kingdom.KingdomType;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.Storage;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.StorageType;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.connection.ConnectionFactory;
@@ -16,7 +17,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.jetbrains.annotations.Nullable;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -47,27 +51,26 @@ public class SqlStorage implements Storage {
         connectionFactory.close();
     }
 
-    @Override
-    public StorageType getType() {
-        return StorageType.MYSQL; // or h2 but the implementation handles all sql languages the same
+    public StorageType getStorageType() {
+        return connectionFactory.getStorageType();
     }
 
-    @Override
     @Nullable
+    @Override
     public UserSnapshot loadUser(UUID id) {
         try (Connection conn = connectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(Constants.LOAD_USER)) {
+            ps.setString(1, id.toString());
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 int playtime = rs.getInt("playtime");
                 int level = rs.getInt("player_level");
                 long firstJoin = rs.getLong("first_join");
                 StatisticsProfile statisticsProfile = new StatisticsProfile(id, playtime, level, firstJoin);
-                String kingdom = rs.getString("kingdom");
                 KingdomRank kingdomRank = KingdomRank.fromString(rs.getString("kingdom_rank"));
-                MembershipProfile membershipProfile = new MembershipProfile(loadKingdom(kingdom), kingdomRank);
-                // TODO don't load kingdom, get it from cache
-                return new UserSnapshot(new ChatProfile(id), statisticsProfile, membershipProfile);
+                MembershipProfile membershipProfile = new MembershipProfile(new Kingdom("test", KingdomType.YEXORA, null), kingdomRank);
+                // TODO don't load kingdom, get it from cache, fix constructor, load homes too
+                return new UserSnapshot(new ChatProfile(id), statisticsProfile, membershipProfile, loadHomes(id));
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -79,7 +82,7 @@ public class SqlStorage implements Storage {
     public void saveUser(UserSnapshot snapshot) {
         try (Connection conn = connectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(Constants.SAVE_USER)) {
-            ps.setInt(1, snapshot.statisticsProfile().getPlaytime());
+            ps.setInt(1, snapshot.statisticsProfile().getMinutesPlayed());
             ps.setInt(2, snapshot.statisticsProfile().getLevel());
             ps.setLong(3, System.currentTimeMillis());
             ps.setString(4, snapshot.membershipProfile().getKingdom().getName());
@@ -96,7 +99,7 @@ public class SqlStorage implements Storage {
         try (Connection conn = connectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(Constants.CREATE_USER)) {
             ps.setString(1, snapshot.statisticsProfile().getId().toString());
-            ps.setInt(2, snapshot.statisticsProfile().getPlaytime());
+            ps.setInt(2, snapshot.statisticsProfile().getMinutesPlayed());
             ps.setInt(3, snapshot.statisticsProfile().getLevel());
             long now = System.currentTimeMillis();
             ps.setLong(4, now);
@@ -109,6 +112,7 @@ public class SqlStorage implements Storage {
         }
     }
 
+    @Nullable
     @Override
     public ChatChannel loadChannel(String name) {
         return null;
@@ -136,7 +140,8 @@ public class SqlStorage implements Storage {
              PreparedStatement ps = conn.prepareStatement(Constants.LOAD_HOMES)) {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                Location loc = new Location(Bukkit.getWorld(rs.getString("location_world")),
+                Location loc = new Location(
+                        Bukkit.getWorld(rs.getString("location_world")),
                         rs.getDouble("location_x"),
                         rs.getDouble("location_y"),
                         rs.getDouble("location_z"),
@@ -156,17 +161,14 @@ public class SqlStorage implements Storage {
     public void createHome(Home home) {
         try (Connection conn = connectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(Constants.CREATE_HOME)) {
-            ps.setString(1, home.getOwner().toString());
-            ps.setDouble(2, home.getLocation().getX());
-            ps.setDouble(3, home.getLocation().getY());
-            ps.setDouble(4, home.getLocation().getZ());
-            ps.setFloat(5, home.getLocation().getPitch());
-            ps.setFloat(6, home.getLocation().getYaw());
-            if (home.getLocation().getWorld() != null) {
-                ps.setString(7, home.getLocation().getWorld().getName());
-            } else {
-                ps.setNull(7, Types.VARCHAR);
-            }
+            ps.setString(1, home.name());
+            ps.setString(2, home.owner().toString());
+            ps.setDouble(3, home.location().getX());
+            ps.setDouble(4, home.location().getY());
+            ps.setDouble(5, home.location().getZ());
+            ps.setFloat(6, home.location().getPitch());
+            ps.setFloat(7, home.location().getYaw());
+            ps.setString(8, home.location().getWorld().getName()); // if world is null something is seriously wrong
             ps.execute();
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -177,13 +179,14 @@ public class SqlStorage implements Storage {
     public void deleteHome(Home home) {
         try (Connection conn = connectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(Constants.DELETE_HOME)) {
-            ps.setString(1, home.getOwner().toString());
-            ps.setString(2, home.getName());
+            ps.setString(1, home.owner().toString());
+            ps.setString(2, home.name());
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
+    @Nullable
     @Override
     public Kingdom loadKingdom(String name) {
         return null;

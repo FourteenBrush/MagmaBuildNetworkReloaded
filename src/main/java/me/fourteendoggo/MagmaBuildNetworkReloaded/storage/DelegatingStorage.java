@@ -12,6 +12,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class DelegatingStorage {
@@ -33,7 +34,7 @@ public class DelegatingStorage {
         try {
             storage.initialize();
         } catch (Exception e) {
-            exceptionHandler("Failed to initialize storage").accept(e);
+            handleException("Failed to initialize storage").accept(e);
         }
     }
 
@@ -41,84 +42,83 @@ public class DelegatingStorage {
         try {
             storage.close();
         } catch (Exception e) {
-            exceptionHandler("Failed to close storage").accept(e);
+            handleException("Failed to close storage").accept(e);
         }
     }
 
-    public StorageType getType() {
-        return storage.getType();
+    public StorageType getStorageType() {
+        return storage.getStorageType();
     }
 
     public CompletableFuture<UserSnapshot> loadUser(UUID id) {
         return makeFuture(() -> storage.loadUser(id),
-                exceptionHandler("Failed to load user " + id));
+                handleException("Failed to load user " + id));
     }
 
     public CompletableFuture<Void> saveUser(UserSnapshot snapshot) {
         return makeFuture(() -> storage.saveUser(snapshot),
-                exceptionHandler("Failed to save user " + snapshot.statisticsProfile().getId()));
+                handleException("Failed to save user " + snapshot.statisticsProfile().getId()));
     }
 
     public CompletableFuture<Void> createUser(UserSnapshot snapshot) {
         return makeFuture(() -> storage.createUser(snapshot),
-                exceptionHandler("Failed to create user " + snapshot.statisticsProfile().getId()));
+                handleException("Failed to create user " + snapshot.statisticsProfile().getId()));
     }
 
     public CompletableFuture<ChatChannel> loadChannel(String name) {
         return makeFuture(() -> storage.loadChannel(name),
-                exceptionHandler("Failed to load chatchannel " + name));
+                handleException("Failed to load chatchannel " + name));
     }
 
     public CompletableFuture<Void> saveChannel(ChatChannel channel) {
         return makeFuture(() -> storage.saveChannel(channel),
-                exceptionHandler("Failed to save chatchannel " + channel.getName()));
+                handleException("Failed to save chatchannel " + channel.getName()));
     }
 
     public CompletableFuture<Void> createChannel(ChatChannel channel) {
         return makeFuture(() -> storage.createChannel(channel),
-                exceptionHandler("Failed to create channel " + channel.getName()));
+                handleException("Failed to create channel " + channel.getName()));
     }
 
     public CompletableFuture<Void> deleteChannel(String name) {
         return makeFuture(() -> storage.deleteChannel(name),
-                exceptionHandler("Failed to delete chatchannel " + name));
+                handleException("Failed to delete chatchannel " + name));
     }
 
     public CompletableFuture<Collection<Home>> loadHomes(UUID owner) {
         return makeFuture(() -> storage.loadHomes(owner),
-                exceptionHandler("Failed to load homes for user " + owner));
+                handleException("Failed to load homes for user " + owner));
     }
 
     public CompletableFuture<Void> createHome(Home home) {
         return makeFuture(() -> storage.createHome(home),
-                exceptionHandler("Failed to create home " + home.name() + " for owner " + home.owner()));
+                handleException("Failed to create home " + home.name() + " for user " + home.owner()));
     }
 
     public CompletableFuture<Void> deleteHome(Home home) {
         return makeFuture(() -> storage.deleteHome(home),
-                exceptionHandler("Failed to delete home " + home.name() + " for owner " + home.owner()));
+                handleException("Failed to delete home " + home.name() + " for user " + home.owner()));
     }
 
     public CompletableFuture<Kingdom> loadKingdom(String name) {
         return makeFuture(() -> storage.loadKingdom(name),
-                exceptionHandler("Failed to load kingdom " + name));
+                handleException("Failed to load kingdom " + name));
     }
 
     public CompletableFuture<Void> saveKingdom(Kingdom kingdom) {
         return makeFuture(() -> storage.saveKingdom(kingdom),
-                exceptionHandler("Failed to save kingdom " + kingdom.getName()));
+                handleException("Failed to save kingdom " + kingdom.getName()));
     }
 
     public CompletableFuture<Void> createKingdom(Kingdom kingdom) {
         return makeFuture(() -> storage.createKingdom(kingdom),
-                exceptionHandler("Failed to create kingdom " + kingdom.getName()));
+                handleException("Failed to create kingdom " + kingdom.getName()));
     }
 
-    private Consumer<Exception> exceptionHandler(String logMessage) {
+    private Consumer<Exception> handleException(String logMessage) {
         return e -> {
-            logger.severe(logMessage);
-            logger.severe("Storage implementation is " + getType().getDescription());
-            e.printStackTrace();
+            logger.log(Level.SEVERE, logMessage, e);
+            logger.severe("Storage implementation is " + getStorageType().getDescription());
         };
     }
 

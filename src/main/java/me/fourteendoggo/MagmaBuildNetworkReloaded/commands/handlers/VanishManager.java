@@ -5,6 +5,7 @@ import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Lang;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Permission;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.NamespacedKey;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
@@ -13,6 +14,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerGameModeChangeEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
@@ -34,23 +37,19 @@ public class VanishManager {
         bossBar = Bukkit.createBossBar("Vanished", BarColor.BLUE, BarStyle.SOLID);
         bossBar.setProgress(1);
         namespacedKey = new NamespacedKey(plugin, "vanished");
-        Bukkit.getPluginManager().registerEvents(new Listener() {
-            @EventHandler
-            public void onCleanup(PlayerQuitEvent event) {
-                vanished.remove(event.getPlayer().getUniqueId());
-            }
-        }, plugin);
+        Bukkit.getPluginManager().registerEvents(new VanishListener(), plugin);
     }
 
-    public void vanish(Player player, boolean showMessage) {
+    public boolean vanish(Player player, boolean showMessage) {
         if (!vanished.add(player.getUniqueId())) {
             player.sendMessage(Lang.VANISH_ALREADY_VANISHED.get());
-            return;
+            return false;
         }
         handleVanish(player);
         if (showMessage) {
             player.sendMessage(Lang.VANISH_ENABLED.get());
         }
+        return true;
     }
 
     public void vanishOther(Player player, boolean showMessage, CommandSender executor) {
@@ -83,15 +82,16 @@ public class VanishManager {
         player.getPersistentDataContainer().set(namespacedKey, PersistentDataType.BYTE, (byte)status);
     }
 
-    public void unVanish(Player player, boolean showMessage) {
+    public boolean unVanish(Player player, boolean showMessage) {
         if (!vanished.remove(player.getUniqueId())) {
             player.sendMessage(Lang.VANISH_ALREADY_VISIBLE.get());
-            return;
+            return false;
         }
         handleUnVanish(player);
         if (showMessage) {
             player.sendMessage(Lang.VANISH_DISABLED.get());
         }
+        return true;
     }
 
     public void unVanishOther(Player player, boolean showMessage, CommandSender executor) {
@@ -124,6 +124,7 @@ public class VanishManager {
     private void handleCommon(Player player, boolean vanish) {
         player.setInvulnerable(vanish);
         player.setSleepingIgnored(vanish);
+        player.setAllowFlight(vanish || player.getGameMode() == GameMode.CREATIVE);
         if (vanish) {
             bossBar.addPlayer(player);
         } else {
@@ -154,7 +155,7 @@ public class VanishManager {
             StringBuilder builder = new StringBuilder();
             builder.append(ChatColor.GOLD).append("Vanished: ");
             vanished.forEach(uuid -> {
-                if (builder.length() > 0)
+                if (builder.length() > 13)
                     builder.append(", ");
                 // wont throw exception as uuid's of players are removed when they leave
                 builder.append(Bukkit.getPlayer(uuid).getName());
@@ -164,34 +165,69 @@ public class VanishManager {
     }
 
     public void doFakeQuit(Player player) {
-        if (!vanished.add(player.getUniqueId())) {
-            player.sendMessage(Lang.VANISH_ALREADY_VANISHED.get());
-        } else {
-            vanish(player, true);
-            String leaveMessage = Lang.LEAVE_MESSAGE.get(player.getName());
-            player.sendMessage(leaveMessage);
-            Bukkit.getOnlinePlayers().forEach(p -> {
-                if (!p.equals(player) && Permission.MODERATOR.has(p)) {
-                    p.sendMessage(Lang.VANISH_ANNOUNCE.get(player.getName()));
-                } else {
-                    p.sendMessage(leaveMessage);
-                }
-            });
-        }
+        if (!vanish(player, true)) return;
+        Bukkit.getOnlinePlayers().forEach(p -> {
+            if (!p.equals(player) && Permission.MODERATOR.has(p)) {
+                p.sendMessage(Lang.VANISH_ANNOUNCE.get(player.getName()));
+            } else {
+                p.sendMessage(Lang.LEAVE_MESSAGE.get(player.getName()));
+            }
+        });
     }
 
     public void doFakeJoin(Player player) {
-        if (!vanished.remove(player.getUniqueId())) {
-            player.sendMessage(Lang.VANISH_ALREADY_VISIBLE.get());
-        } else {
-            unVanish(player, true);
-            String joinMessage = Lang.JOIN_MESSAGE.get(player.getName());
-            player.sendMessage(joinMessage);
-            Bukkit.getOnlinePlayers().forEach(p -> {
-                if (!p.equals(player) && Permission.MODERATOR.has(p)) {
-                    p.sendMessage(Lang.VANISH_BACK_VISIBLE_ANNOUNCE.get(player.getName()));
-                } else {
-                    p.sendMessage(joinMessage);
+        if (!unVanish(player, true)) return;
+        Bukkit.getOnlinePlayers().forEach(p -> {
+            if (!p.equals(player) && Permission.MODERATOR.has(p)) {
+                p.sendMessage(Lang.VANISH_BACK_VISIBLE_ANNOUNCE.get(player.getName()));
+            } else {
+                p.sendMessage(Lang.JOIN_MESSAGE.get(player.getName()));
+            }
+        });
+    }
+
+    private class VanishListener implements Listener {
+
+        @EventHandler
+        public void onQuit(PlayerQuitEvent event) {
+            Player player = event.getPlayer();
+            if (vanished.remove(player.getUniqueId())) {
+                sendMessageForStaffExclude(Lang.LEFT_VANISHED.get(player.getName()), player);
+            } else {
+                event.setQuitMessage(Lang.LEAVE_MESSAGE.get(event.getPlayer().getName()));
+            }
+        }
+
+        @EventHandler
+        public void onJoin(PlayerJoinEvent event) {
+            Player player = event.getPlayer();
+            byte status = event.getPlayer().getPersistentDataContainer().getOrDefault(namespacedKey, PersistentDataType.BYTE, (byte)0);
+            if (status == 1 || status == 2) {
+                event.setJoinMessage(null);
+                vanish(event.getPlayer(), false);
+                sendMessageForStaffExclude(Lang.JOINED_VANISHED.get(player.getName()), player);
+            } else {
+                event.setJoinMessage(Lang.JOIN_MESSAGE.get(player.getName()));
+            }
+        }
+
+        @EventHandler
+        public void onGameModeChange(PlayerGameModeChangeEvent event) {
+            switch (event.getNewGameMode()) {
+                case SURVIVAL, ADVENTURE -> {
+                    if (vanished.contains(event.getPlayer().getUniqueId())) {
+                        event.getPlayer().setAllowFlight(true);
+                        event.getPlayer().setFlying(true); // TODO check this
+                        plugin.getLogger().info("Trying to enable fly...");
+                    }
+                }
+            }
+        }
+
+        private void sendMessageForStaffExclude(String message, Player exclude) {
+            Bukkit.getOnlinePlayers().forEach(player -> {
+                if (!player.equals(exclude) && Permission.MODERATOR.has(player)) {
+                    player.sendMessage(message);
                 }
             });
         }

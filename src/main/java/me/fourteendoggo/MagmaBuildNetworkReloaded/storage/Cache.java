@@ -1,10 +1,8 @@
 package me.fourteendoggo.MagmaBuildNetworkReloaded.storage;
 
-import java.util.Optional;
-
 public interface Cache<K, V> extends Iterable<V> {
 
-    Optional<V> get(K key);
+    V get(K key);
 
     boolean contains(K key);
 

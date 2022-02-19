@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public class StatisticsProfile {
     private final UUID id;
-    private int playtime;
+    private int minutesPlayed;
     private int level;
     private long lastUpdate;
     private final long firstJoin;
@@ -18,7 +18,7 @@ public class StatisticsProfile {
 
     public StatisticsProfile(UUID id, int playTime, int level, long firstJoin) {
         this.id = id;
-        this.playtime = playTime;
+        this.minutesPlayed = playTime;
         this.level = level;
         this.firstJoin = firstJoin;
         lastUpdate = System.currentTimeMillis();
@@ -28,8 +28,8 @@ public class StatisticsProfile {
         return id;
     }
 
-    public int getPlaytime() {
-        return playtime;
+    public int getMinutesPlayed() {
+        return minutesPlayed;
     }
 
     public int getLevel() {
@@ -44,19 +44,13 @@ public class StatisticsProfile {
         return firstJoin;
     }
 
-    public void setPlaytime(int playtime) {
-        Validate.isTrue(playtime >= 0, "playtime must be bigger than or equals to 0");
-        this.playtime = playtime;
+    public void incrementPlaytimeWith(int minutes) {
+        Validate.isTrue(minutes > 0, "Cannot increment playtime with a negative number");
+        minutesPlayed =+ minutes;
     }
 
-    public void updatePlaytimeWith(int playtime) {
-        Validate.isTrue(playtime > 0, "You can only update the playtime with a number bigger than 0");
-        this.playtime += playtime;
-    }
-
-    public void setLevel(int level) {
-        Validate.isTrue(level >= 0, "Level must be bigger than or equals to 0");
-        this.level = level;
+    public void incrementLevel() {
+        level++;
     }
 
     public void setLastUpdate(long lastUpdate) {
@@ -69,11 +63,11 @@ public class StatisticsProfile {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         StatisticsProfile that = (StatisticsProfile) o;
-        return playtime == that.playtime && level == that.level && lastUpdate == that.lastUpdate && firstJoin == that.firstJoin && id.equals(that.id);
+        return minutesPlayed == that.minutesPlayed && level == that.level && lastUpdate == that.lastUpdate && firstJoin == that.firstJoin && id.equals(that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, playtime, level, lastUpdate, firstJoin);
+        return Objects.hash(id, minutesPlayed, level, lastUpdate, firstJoin);
     }
 }

@@ -14,7 +14,7 @@ public interface Storage {
 
     void close();
 
-    StorageType getType();
+    StorageType getStorageType();
 
     UserSnapshot loadUser(UUID id);
 

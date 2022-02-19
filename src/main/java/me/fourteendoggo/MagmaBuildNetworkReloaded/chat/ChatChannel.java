@@ -39,7 +39,7 @@ public class ChatChannel {
     }
 
     public boolean canJoin(User user) {
-        return user.hasPermission(joinPermission) && whitelist.contains(user.getId());
+        return user.getPlayer().hasPermission(joinPermission) && whitelist.contains(user.getId());
     }
 
     public boolean whitelist(UUID userId) {
@@ -64,52 +64,49 @@ public class ChatChannel {
 
     public boolean join(User user, boolean showMessage) {
         if (joinedUsers.contains(user)) {
-            user.sendMessage(Lang.CHANNEL_ALREADY_JOINED.get());
+            user.getPlayer().sendMessage(Lang.CHANNEL_ALREADY_JOINED.get());
             return false;
         }
-        if (!user.hasPermission(joinPermission)) {
-            user.sendMessage(Lang.NO_PERMISSION.get());
+        if (!user.getPlayer().hasPermission(joinPermission)) {
+            user.getPlayer().sendMessage(Lang.NO_PERMISSION.get());
             return false;
         }
         if (!whitelist.contains(user.getId())) {
-            user.sendMessage(Lang.CHANNEL_NOT_WHITELISTED.get());
+            user.getPlayer().sendMessage(Lang.CHANNEL_NOT_WHITELISTED.get());
             return false;
         }
-        user.getChatProfile().addChannel(this);
+        user.getData().chatProfile().addChannel(this);
         if (showMessage) {
-            user.sendMessage(Lang.CHANNEL_JOINED.get(getDisplayName()));
+            user.getPlayer().sendMessage(Lang.CHANNEL_JOINED.get(getDisplayName()));
         }
         return true;
     }
 
     public boolean leave(User user, boolean showMessage) {
         if (!joinedUsers.remove(user)) {
-            user.sendMessage(Lang.CHANNEL_NOT_JOINED.get());
+            user.getPlayer().sendMessage(Lang.CHANNEL_NOT_JOINED.get());
             return false;
         }
-        user.getChatProfile().removeChannel(this);
+        user.getData().chatProfile().removeChannel(this);
         if (showMessage) {
-            user.sendMessage(Lang.CHANNEL_LEFT.get(getDisplayName()));
+            user.getPlayer().sendMessage(Lang.CHANNEL_LEFT.get(getDisplayName()));
         }
         return true;
     }
 
     public boolean setAsCurrentFor(User user) {
-        ChatChannel currentChannel = user.getChatProfile().getCurrentChannel();
+        ChatChannel currentChannel = user.getData().chatProfile().getCurrentChannel();
         if (currentChannel != null && currentChannel.getName().equals(getName())) return false;
-        if (!user.getChatProfile().isInChannel(this)) {
+        if (!user.getData().chatProfile().isInChannel(this)) {
             join(user, false);
         }
-        user.getChatProfile().setCurrentChannel(this);
-        user.sendMessage(Lang.CHANNEL_SET_CURRENT.get(getDisplayName()));
+        user.getData().chatProfile().setCurrentChannel(this);
+        user.getPlayer().sendMessage(Lang.CHANNEL_SET_CURRENT.get(getDisplayName()));
         return true;
     }
 
     public void sendMessage(String message) {
-        message = Utils.colorize(message);
-        for (User user : joinedUsers) {
-            user.sendMessage(message);
-        }
+        joinedUsers.forEach(user -> user.getPlayer().sendMessage(message));
     }
 
     public List<String> getMotd() {

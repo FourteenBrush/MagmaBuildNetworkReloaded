@@ -8,7 +8,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Utils {
-    private static final Pattern HEX_PATTERN = Pattern.compile("#[a-fA-f0-9]{6}");
+    private static final Pattern HEX_PATTERN = Pattern.compile("#[a-fA-F0-9]{6}");
 
     private Utils() {}
 

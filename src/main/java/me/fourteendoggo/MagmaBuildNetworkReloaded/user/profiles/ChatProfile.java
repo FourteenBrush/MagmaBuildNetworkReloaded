@@ -1,7 +1,5 @@
 package me.fourteendoggo.MagmaBuildNetworkReloaded.user.profiles;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.chat.ChannelRank;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.chat.ChatChannel;
 
@@ -9,12 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 public class ChatProfile {
-    private static final Cache<UUID, Object> chatCache =
-            CacheBuilder.newBuilder().expireAfterWrite(800, TimeUnit.MILLISECONDS).build();
-
     private final UUID userId;
     /* Assuming that the current channel is also present in the channels */
     private final Map<ChatChannel, ChannelRank> chatChannels;
@@ -63,7 +57,7 @@ public class ChatProfile {
     }
 
     public boolean mayChat() {
-        return !muted && getRank(currentChannel) != ChannelRank.LISTENER && chatCache.getIfPresent(userId) != null;
+        return !muted && getRank(currentChannel) != ChannelRank.LISTENER;
     }
 
     @Override

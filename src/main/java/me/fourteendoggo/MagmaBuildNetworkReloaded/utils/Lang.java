@@ -1,18 +1,21 @@
 package me.fourteendoggo.MagmaBuildNetworkReloaded.utils;
 
 import me.fourteendoggo.MagmaBuildNetworkReloaded.MBNPlugin;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
 
 public enum Lang {
     NO_PERMISSION("no-permission", "&cI'm sorry but you don't have permission to do that!"),
     NO_CONSOLE("no-console", "&cI'm sorry but the console cannot execute this!"),
-    JOIN_MESSAGE("join-message", "&7[&a&l+&7] &b{0} &7joined the server"),
-    LEAVE_MESSAGE("leave-message", "&7[&c&l-&7] &b{0} &7left the server"),
+    PICK_KINGDOM_FIRST("pick-kingdom-first", "&cPlease select a kingdom to join before you can do anything!"),
+    JOIN_MESSAGE("join-message.normal", "&7[&a&l+&7] &b{0} &7joined the server"),
+    JOINED_VANISHED("join-message.vanished", "&7[&a&l+&7] &3{0} joined vanished and silently"),
+    LEAVE_MESSAGE("leave-message.normal", "&7[&c&l-&7] &b{0} &7left the server"),
+    LEFT_VANISHED("leave-message.vanished", "&7[&c&l-&7] &3{0} left vanished and silently"),
     PLAYER_NOT_FOUND("player-not-found", "&cThat player cannot be found!"),
     PLAYTIME("playtime", messageColor() + "Your playtime is {0} and the first time you joined the server was on {1}"),
     PLAYTIME_OTHER("playtime-other", messageColor() + "{0}'s playtime is {1} and they joined the server for the first time on {2}"),
@@ -41,32 +44,34 @@ public enum Lang {
     HOME_TELEPORTED_TO("home.teleported-to", messageColor() + "You teleported to your home, {0}"),
     HOMES_NO_HOMES_SET("home.no-homes-created", "&cYou haven't created any homes!"),
     HOME_NAME_NOT_FOUND("home.name-not-found", "&cYou have no home with that name!"),
-
+    HOME_CANNOT_HAVE_DUPLICATES("home.cannot-have-duplicates", "&cYou already have a home with that name!"),
     ERROR_CREATING_HOME("error.creating-home", "&cSomething went wrong creating a home!"),
     ERROR_DELETING_HOME("error.deleting-home", "&cSomething went wrong deleting a home!"),
+    ERROR_FAILED_TO_LOAD_DATA("error.failed-to-load-data", "&cWe failed to load your player data, please try again in a while!"),
 
     /* command help messages ~ cannot be overridden */
 
-    HOME_COMMAND_HELP("command-help.home", "&e------------ &7[&eHome Command&7] &e------------" +
-            "&7Below is a list of all home subcommands:" +
-            "  &6/home create <name> &7- &6Creates a new home" +
-            "  /home remove <name> &7- &6Removes the home with that name" +
-            "  /home list &7- &6Shows a list of all your homes" +
-            "  /home teleport <name> &7- &6Teleports you to the home with that name" +
-            "  /home help &7- &6Shows this message"),
-    VANISH_COMMAND_HELP("command.help.vanish", "&e------------ &7[&eVanish Command&7] &e------------" +
-            "&7Below is a list of all vanish subcommands:" +
-            "  &6/vanish <player> &7- &6Vanishes the mentioned player" +
-            "  /vanish enable [player] &7- &6Vanishes the mentioned player, or yourself" +
-            "  /vanish disable [player] &7- &6Un-vanishes the mentioned player, or yourself" +
-            "  /vanish list &7- &6Shows a list of all the vanished players on the server" +
-            "  /vanish fakequit &7- &6Sends the server a fake leave message and vanishes you" +
-            "  /vanish fakejoin &7- &6Sends the server a fake join message and un-vanishes you"),
-    PLAYTIME_COMMAND_HELP("command.help.playtime", "&e------------ &7[&ePlaytime Command&7] &e------------" +
-            "&7Below is a list of all playtime subcommands:" +
-            "  &6/playtime <player> &7- &6Shows the playtime for the mentioned player, or yourself");
-
-    private static final ChatColor messageColor = ChatColor.of("#83c916");
+    HOME_COMMAND_HELP("command-help.home", """
+            &e------------ &7[&eHome Command&7] &e------------
+            &7Below is a list of all home subcommands:
+              &6/home create <name> &7- &6Creates a new home
+              /home remove <name> &7- &6Removes the home with that name
+              /home list &7- &6Shows a list of all your homes
+              /home teleport <name> &7- &6Teleports you to the home with that name
+              /home help &7- &6Shows this message"""),
+    VANISH_COMMAND_HELP("command.help.vanish", """
+            &e------------ &7[&eVanish Command&7] &e------------
+            &7Below is a list of all vanish subcommands:
+              &6/vanish <player> &7- &6Vanishes the mentioned player
+              /vanish enable [player] &7- &6Vanishes the mentioned player, or yourself
+              /vanish disable [player] &7- &6Un-vanishes the mentioned player, or yourself
+              /vanish list &7- &6Shows a list of all the vanished players on the server
+              /vanish fakequit &7- &6Sends the server a fake leave message and vanishes you
+              /vanish fakejoin &7- &6Sends the server a fake join message and un-vanishes you"""),
+    PLAYTIME_COMMAND_HELP("command.help.playtime", """
+            &e------------ &7[&ePlaytime Command&7] &e------------
+            &7Below is a list of all playtime subcommands:
+              &6/playtime <player> &7- &6Shows the playtime for the mentioned player, or yourself""");
 
     private final String path;
     private final String fallback;
@@ -96,13 +101,17 @@ public enum Lang {
         FileConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         boolean fileNeedsToBeSaved = false;
         for (Lang l : values()) {
-            if (l.name().endsWith("COMMAND_HELP")) continue; // command help messages cannot be overridden and aren't placed in the lang file either
-            String real = yaml.getString(l.path);
-            if (real == null || real.isEmpty() || real.trim().isEmpty()) {
-                plugin.getLogger().warning("Missing or empty lang data found on path " + l.path + ", using fallback (" + l.fallback + ")");
-                yaml.set(l.path, l.fallback);
-                real = l.fallback;
-                fileNeedsToBeSaved = true;
+            String real;
+            if (l.name().endsWith("COMMAND_HELP")) {
+                real = l.fallback; // command help messages cannot be overridden and aren't placed in the lang file either
+            } else {
+                real = yaml.getString(l.path);
+                if (real == null || real.isEmpty() || real.isBlank()) {
+                    plugin.getLogger().warning("Missing or empty lang data found on path '" + l.path + "' replacing it with fallback");
+                    yaml.set(l.path, l.fallback);
+                    real = l.fallback;
+                    fileNeedsToBeSaved = true;
+                }
             }
             l.value = Utils.colorizeSupportHex(real);
         }
@@ -110,13 +119,12 @@ public enum Lang {
             try {
                 yaml.save(file);
             } catch (IOException e) {
-                plugin.getLogger().severe("Failed to add new entries to the lang.yml file");
-                e.printStackTrace();
+                plugin.getLogger().log(Level.SEVERE, "Failed to add new entries to the lang.yml file", e);
             }
         }
     }
 
-    private static ChatColor messageColor() {
-        return messageColor;
+    private static String messageColor() {
+        return "#83c916";
     }
 }

@@ -1,112 +1,79 @@
 package me.fourteendoggo.MagmaBuildNetworkReloaded.user;
 
 import me.fourteendoggo.MagmaBuildNetworkReloaded.MBNPlugin;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.user.profiles.ChatProfile;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.user.profiles.MembershipProfile;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.user.profiles.StatisticsProfile;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Permission;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Utils;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Team;
 
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.text.DecimalFormat;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.UnaryOperator;
 
 public class User {
+    private final UUID id;
+    private boolean dirty = false;
     private final BukkitRunnable actionbar;
-    private final ChatProfile chatProfile;
-    private final StatisticsProfile statisticsProfile;
-    private MembershipProfile membershipProfile;
-    private boolean vanished;
+    private final Reference<Player> player;
+    private final AtomicReference<UserSnapshot> snapshot;
 
-    public User(ChatProfile chatProfile, StatisticsProfile statisticsProfile) {
-        this(chatProfile, statisticsProfile, null);
-    }
-
-    public User(ChatProfile chatprofile, StatisticsProfile statisticsProfile, MembershipProfile membershipProfile) {
-        this.actionbar = new Actionbar();
-        this.chatProfile = chatprofile;
-        this.statisticsProfile = statisticsProfile;
-        this.membershipProfile = membershipProfile;
-        this.vanished = false;
-        disableCollision();
+    public User(Player bindTo) {
+        id = bindTo.getUniqueId();
+        actionbar = new Actionbar(bindTo);
+        player = new WeakReference<>(bindTo);
+        snapshot = new AtomicReference<>();
     }
 
     public UUID getId() {
-        return statisticsProfile.getId();
+        return id;
     }
 
-    private Player getPlayer() {
-        return Bukkit.getPlayer(getId());
+    public boolean isDirty() {
+        return dirty;
     }
 
-    public boolean isOnline() {
-        return getPlayer().isOnline();
+    public void setDirty(boolean dirty) {
+        this.dirty = dirty;
     }
 
-    public boolean hasPermission(Permission permission) {
-        return permission.has(getPlayer());
-    }
-
-    public ChatProfile getChatProfile() {
-        return chatProfile;
-    }
-
-    public StatisticsProfile getStatisticsProfile() {
-        return statisticsProfile;
-    }
-
-    public MembershipProfile getMembershipProfile() {
-        return membershipProfile;
-    }
-
-    public void setMembershipProfile(MembershipProfile membershipProfile) {
-        this.membershipProfile = membershipProfile;
-    }
-
-    public boolean hasPermission(String permission) {
-        return getPlayer().hasPermission(permission);
-    }
-
-    public boolean isVanished() {
-        return vanished;
-    }
-
-    public void setVanished(boolean flag) {
-        vanished = flag;
-        Player player = getPlayer();
-        if (flag) {
-
-        } else {
-
+    public void setSnapshot(UserSnapshot userSnapshot) {
+        if (getData() == null) {
+            dirty = true;
         }
+        snapshot.set(userSnapshot);
     }
 
-    public void sendMessage(String message) {
-        getPlayer().sendMessage(Utils.colorize(message));
+    public UserSnapshot getData() {
+        return snapshot.get();
     }
 
-    public void login(MBNPlugin plugin) {
-        actionbar.runTaskTimerAsynchronously(plugin, 20, 8);
+    public void update(UnaryOperator<UserSnapshot> op) {
+        snapshot.updateAndGet(op);
+        dirty = true;
     }
 
-    public void logoutSafely() {
-        actionbar.cancel();
+    public Player getPlayer() {
+        return player.get();
     }
 
-    private void disableCollision() {
-        Player player = getPlayer();
-        Team team = player.getScoreboard().getTeam("mbn");
+    public void onDataLoadComplete(MBNPlugin plugin) {
+        actionbar.runTaskTimerAsynchronously(plugin, 1L, 8L);
+        Team team = getPlayer().getScoreboard().getTeam("mbn");
         if (team == null) {
-            team = player.getScoreboard().registerNewTeam("mbn");
-        }
+            team = getPlayer().getScoreboard().registerNewTeam("mbn");
+        } // disable collision
         team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
-        team.addEntry(player.getName());
+        team.addEntry(getPlayer().getName());
+    }
+
+    public void logout() {
+        actionbar.cancel();
     }
 
     @Override
@@ -114,21 +81,21 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return Objects.equals(chatProfile, user.chatProfile) && Objects.equals(statisticsProfile, user.statisticsProfile) && Objects.equals(membershipProfile, user.membershipProfile);
+        return dirty == user.dirty && id.equals(user.id) && player.equals(user.player) && snapshot.equals(user.snapshot);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), chatProfile, statisticsProfile, membershipProfile);
+        return Objects.hash(id, dirty, player, snapshot);
     }
 
-    private class Actionbar extends BukkitRunnable {
+    private static class Actionbar extends BukkitRunnable {
         private final Player player;
         private final DecimalFormat df;
 
-        public Actionbar() {
-            this.player = getPlayer();
-            this.df = new DecimalFormat("#.##");
+        public Actionbar(Player player) {
+            this.player = player;
+            df = new DecimalFormat("#.##");
         }
 
         @Override

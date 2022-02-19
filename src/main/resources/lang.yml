@@ -1,9 +1,44 @@
-no-permission: "&cI'm sorry but you don't have permission to do that!"
-no-console: "&cI'm sorry but the console cannot execute this!"
+no-permission: '&cI''m sorry but you don''t have permission to do that!'
+no-console: '&cI''m sorry but the console cannot execute this!'
 channel:
-  already-joined: "&cYou are already in that channel!"
-  not-whitelisted: "&cYou are not on the whitelist of that channel!"
-  joined: "#83c916You joined {0}"
-  not-joined: "&cYou are not in that channel!"
-  left: "#83c916You left the channel {0}"
-  set-as-current: "#83c916You set {0} as your current channel"
+  already-joined: '&cYou are already in that channel!'
+  not-whitelisted: '&cYou are not on the whitelist of that channel!'
+  joined: '#83c916You joined {0}'
+  not-joined: '&cYou are not in that channel!'
+  left: '#83c916You left the channel {0}'
+  set-as-current: '#83c916You set {0} as your current channel'
+pick-kingdom-first: '&cPlease select a kingdom to join before you can do anything!'
+join-message:
+  normal: '&7[&a&l+&7] &b{0} &7joined the server'
+  vanished: '&7[&a&l+&7] &3{0} joined vanished and silently'
+leave-message:
+  normal: '&7[&c&l-&7] &b{0} &7left the server'
+  vanished: '&7[&c&l-&7] &3{0} left vanished and silently'
+player-not-found: '&cThat player cannot be found!'
+playtime: '#83c916Your playtime is {0} and the first time you joined the server was on {1}'
+playtime-other: '#83c916{0}''s playtime is {1} and they joined the server for the first time on {2}'
+vanish:
+  enabled: '&6You have been vanished'
+  enabled-by-other: '&6You have been vanished by {0}'
+  disabled-for-other: '#83c916You vanished {0}'
+  disabled: '&6You are visible again'
+  disabled-by-other: '&6You have been un-vanished by {0}'
+  already-vanished: '&cYou are already vanished!'
+  other-already-vanished: '&cThat player is already vanished!'
+  already-visible: '&cYou are already visible!'
+  other-already-visible: '&cThat player is already visible!'
+  announce: '&e{0} has vanished. Poof'
+  back-visible-announce: '&e{0} has become visible'
+  no-players-vanished: '&cThere are currently no vanished players online!'
+home:
+  limit-reached: '&cYou have reached the maximum amount of homes you can have, you can try to delete one first!'
+  created-new: '#83c916You have created a new home, {0}'
+  deleted: '#83c916You''ve deleted your home, {0}'
+  teleported-to: '#83c916You teleported to your home, {0}'
+  no-homes-created: '&cYou haven''t created any homes!'
+  name-not-found: '&cYou have no home with that name!'
+  cannot-have-duplicates: '&cYou already have a home with that name!'
+error:
+  creating-home: '&cSomething went wrong creating a home!'
+  deleting-home: '&cSomething went wrong deleting a home!'
+  failed-to-load-data: '&cWe failed to load your player data, please try again in a while!'

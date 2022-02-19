@@ -1,19 +1,23 @@
 package me.fourteendoggo.MagmaBuildNetworkReloaded.storage.cache;
 
 import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.Cache;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.user.NewUser;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.user.User;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class UserRepository implements Cache<UUID, NewUser> {
-    private final Map<UUID, NewUser> userMap = new HashMap<>();
+public class UserRepository implements Cache<UUID, User> {
+    private final Map<UUID, User> userMap = new HashMap<>();
 
     @Override
-    public Optional<NewUser> get(UUID key) {
-        return Optional.ofNullable(userMap.get(key));
+    public User get(UUID key) {
+        return userMap.get(key);
+    }
+
+    public Optional<User> getOptional(UUID key) {
+        return Optional.ofNullable(get(key));
     }
 
     @Override
@@ -22,7 +26,7 @@ public class UserRepository implements Cache<UUID, NewUser> {
     }
 
     @Override
-    public void cache(UUID key, NewUser data) {
+    public void cache(UUID key, User data) {
         userMap.put(key, data);
     }
 
@@ -32,7 +36,7 @@ public class UserRepository implements Cache<UUID, NewUser> {
     }
 
     @Override
-    public void removeByValue(NewUser value) {
+    public void removeByValue(User value) {
         userMap.entrySet().removeIf(entry -> entry.getValue().equals(value));
     }
 
@@ -58,7 +62,7 @@ public class UserRepository implements Cache<UUID, NewUser> {
 
     @NotNull
     @Override
-    public Iterator<NewUser> iterator() {
+    public Iterator<User> iterator() {
         return userMap.values().iterator();
     }
 }

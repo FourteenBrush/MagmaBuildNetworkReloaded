@@ -11,9 +11,11 @@ import java.text.MessageFormat;
 
 public class ConnectionFactory {
     private final HikariDataSource dataSource;
+    private final StorageType type;
 
     private ConnectionFactory(MBNPlugin plugin, StorageType type) {
         this.dataSource = new HikariDataSource();
+        this.type = type;
         String jdbcUrl;
         if (type == StorageType.MYSQL) {
             String address = plugin.getConfig().getString("database.host", "localhost");
@@ -43,6 +45,10 @@ public class ConnectionFactory {
 
     public Connection getConnection() throws SQLException {
         return dataSource.getConnection();
+    }
+
+    public StorageType getStorageType() {
+        return type;
     }
 
     public void close() {

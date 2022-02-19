@@ -1,6 +1,5 @@
 package me.fourteendoggo.MagmaBuildNetworkReloaded.commands.handlers;
 
-import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Utils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -16,6 +15,6 @@ public record CommandSource(CommandSender sender) {
     }
 
     public void sendMessage(String message) {
-        sender.sendMessage(Utils.colorize(message));
+        sender.sendMessage(message);
     }
 }

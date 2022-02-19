@@ -7,7 +7,7 @@ public interface Constants {
     @Language("SQL") String CREATE_USER = "INSERT INTO users(uuid, playtime, player_level, last_update, first_join, kingdom, kingdom_rank) VALUES(?,?,?,?,?,?,?);";
     @Language("SQL") String SAVE_USER = "UPDATE users SET playtime=?, player_level=?, last_update=?, kingdom=?, kingdom_rank=? WHERE uuid=?;";
     @Language("SQL") String LOAD_HOMES = "SELECT * FROM homes WHERE user=?, name=?;";
-    @Language("SQL") String CREATE_HOME = "INSERT INTO homes(owner, location_x, location_y, location_z, location_pitch, location_yaw, location_world) VALUES(?,?,?,?,?,?,?);";
+    @Language("SQL") String CREATE_HOME = "INSERT INTO homes(name, owner, location_x, location_y, location_z, location_pitch, location_yaw, location_world) VALUES(?,?,?,?,?,?,?,?);";
     @Language("SQL") String DELETE_HOME = "DELETE FROM homes WHERE user=?, name=?;";
     @Language("MYSQL-PSQL") String[] TABLES = {
             "CREATE TABLE IF NOT EXISTS users(uuid VARCHAR(40), playtime INT, player_level INT, last_update BIGINT, first_join BIGINT, kingdom VARCHAR(40), kingdom_rank VARCHAR(40), PRIMARY KEY(uuid));",

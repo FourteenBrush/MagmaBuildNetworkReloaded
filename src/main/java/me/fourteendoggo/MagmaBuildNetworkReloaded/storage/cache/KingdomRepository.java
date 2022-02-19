@@ -7,7 +7,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Optional;
 
 public class KingdomRepository implements Cache<String, Kingdom> {
     private final Map<String, Kingdom> kingdomMap;
@@ -17,8 +16,8 @@ public class KingdomRepository implements Cache<String, Kingdom> {
     }
 
     @Override
-    public Optional<Kingdom> get(String key) {
-        return Optional.ofNullable(kingdomMap.get(key));
+    public Kingdom get(String key) {
+        return kingdomMap.get(key);
     }
 
     @Override
@@ -28,16 +27,7 @@ public class KingdomRepository implements Cache<String, Kingdom> {
 
     @Override
     public void cache(String key, Kingdom data) {
-        cache(key, data, false);
-    }
 
-    @Override
-    public void cache(String key, Kingdom data, boolean overrideOlder) {
-        if (overrideOlder) {
-            kingdomMap.put(key, data);
-        } else {
-            kingdomMap.putIfAbsent(key, data);
-        }
     }
 
     @Override

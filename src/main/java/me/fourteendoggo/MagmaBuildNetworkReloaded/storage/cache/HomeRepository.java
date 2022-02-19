@@ -1,6 +1,5 @@
 package me.fourteendoggo.MagmaBuildNetworkReloaded.storage.cache;
 
-import me.fourteendoggo.MagmaBuildNetworkReloaded.MBNPlugin;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.Cache;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.records.Home;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.records.Pair;
@@ -11,35 +10,29 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 public class HomeRepository implements Cache<Pair<UUID, String>, Home> {
-    private final Map<Pair<UUID, String>, Home> homesMap;
-
-    public HomeRepository(MBNPlugin plugin) {
-        homesMap = new HashMap<>();
-        Bukkit.getScheduler().runTaskTimer(plugin, this::cleanup, 20, 20 * 60 * 5); // cleanup every 5 minutes
-    }
+    private final Map<Pair<UUID, String>, Home> homesMap = new HashMap<>();
 
     @Override
-    public Optional<Home> get(Pair<UUID, String> key) {
-        return Optional.ofNullable(homesMap.get(key));
+    public Home get(Pair<UUID, String> key) {
+        return homesMap.get(key);
     }
 
     public Set<Home> getAllFor(UUID id) {
-        Set<Home> homes = new HashSet<>();
-        forEach(home -> {
-            if (home.getOwner().equals(id))
-                homes.add(home);
+        Set<Home> output = new HashSet<>();
+        homesMap.values().forEach(home -> {
+            if (home.owner().equals(id))
+                output.add(home);
         });
-        return homes;
+        return output;
     }
 
     public Set<String> getAllNamesFor(UUID id) {
-        Set<String> homes = new HashSet<>();
-        forEach(home -> {
-            if (home.getOwner().equals(id)) {
-                homes.add(home.getName());
-            }
+        Set<String> output = new HashSet<>();
+        homesMap.values().forEach(home -> {
+            if (home.owner().equals(id))
+                output.add(home.name());
         });
-        return homes;
+        return output;
     }
 
     @Override
@@ -49,16 +42,11 @@ public class HomeRepository implements Cache<Pair<UUID, String>, Home> {
 
     @Override
     public void cache(Pair<UUID, String> key, Home data) {
-        cache(key, data, false);
+        homesMap.put(key, data);
     }
 
-    @Override
-    public void cache(Pair<UUID, String> key, Home data, boolean overrideOlder) {
-        if (overrideOlder) {
-            homesMap.put(key, data);
-        } else {
-            homesMap.putIfAbsent(key, data);
-        }
+    public void cacheAll(Collection<? extends Home> data) {
+        data.forEach(home -> homesMap.put(new Pair<>(home.owner(), home.name()), home));
     }
 
     @Override
@@ -80,10 +68,10 @@ public class HomeRepository implements Cache<Pair<UUID, String>, Home> {
     public int cleanup() {
         int sizeBefore = size();
         homesMap.entrySet().removeIf(entry -> {
-            Player player = Bukkit.getPlayer(entry.getKey().getKey());
+            Player player = Bukkit.getPlayer(entry.getKey().key());
             return player == null || !player.isOnline();
         });
-        return sizeBefore - size();
+        return size() - sizeBefore;
     }
 
     @Override
