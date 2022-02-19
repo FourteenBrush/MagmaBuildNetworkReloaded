@@ -17,6 +17,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -153,7 +154,7 @@ public class VanishManager {
             target.sendMessage(Lang.VANISH_NO_PLAYERS_VANISHED.get());
         } else {
             StringBuilder builder = new StringBuilder();
-            builder.append(ChatColor.GOLD).append("Vanished: ");
+            builder.append(ChatColor.GOLD).append("Vanished players: ");
             vanished.forEach(uuid -> {
                 if (builder.length() > 13)
                     builder.append(", ");
@@ -189,16 +190,6 @@ public class VanishManager {
     private class VanishListener implements Listener {
 
         @EventHandler
-        public void onQuit(PlayerQuitEvent event) {
-            Player player = event.getPlayer();
-            if (vanished.remove(player.getUniqueId())) {
-                sendMessageForStaffExclude(Lang.LEFT_VANISHED.get(player.getName()), player);
-            } else {
-                event.setQuitMessage(Lang.LEAVE_MESSAGE.get(event.getPlayer().getName()));
-            }
-        }
-
-        @EventHandler
         public void onJoin(PlayerJoinEvent event) {
             Player player = event.getPlayer();
             byte status = event.getPlayer().getPersistentDataContainer().getOrDefault(namespacedKey, PersistentDataType.BYTE, (byte)0);
@@ -212,15 +203,34 @@ public class VanishManager {
         }
 
         @EventHandler
+        public void onQuit(PlayerQuitEvent event) {
+            Player player = event.getPlayer();
+            if (vanished.remove(player.getUniqueId())) {
+                sendMessageForStaffExclude(Lang.LEFT_VANISHED.get(player.getName()), player);
+            } else {
+                event.setQuitMessage(Lang.LEAVE_MESSAGE.get(event.getPlayer().getName()));
+            }
+        }
+
+        @EventHandler
         public void onGameModeChange(PlayerGameModeChangeEvent event) {
-            switch (event.getNewGameMode()) {
-                case SURVIVAL, ADVENTURE -> {
-                    if (vanished.contains(event.getPlayer().getUniqueId())) {
-                        event.getPlayer().setAllowFlight(true);
-                        event.getPlayer().setFlying(true); // TODO check this
-                        plugin.getLogger().info("Trying to enable fly...");
-                    }
-                }
+            if (event.getNewGameMode() != GameMode.SURVIVAL && event.getNewGameMode() != GameMode.ADVENTURE) return;
+            allowFlight(event.getPlayer());
+        }
+
+        @EventHandler
+        public void onTeleport(PlayerTeleportEvent event) {
+            if (!event.getFrom().getWorld().getName().equals(event.getTo().getWorld().getName())) {
+                allowFlight(event.getPlayer());
+            }
+        }
+
+        private void allowFlight(Player player) {
+            if (vanished.contains(player.getUniqueId())) {
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    player.setAllowFlight(true);
+                    player.setFlying(true);
+                });
             }
         }
 

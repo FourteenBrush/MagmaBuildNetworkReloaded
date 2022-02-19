@@ -12,5 +12,7 @@ commands:
     description: Provides an easy way to work with homes
   vanish:
     description: Provides an easy way to vanish
+    aliases: [v]
   playtime:
     description: A command to show your or someone elses playtime
+    aliases: [onlinetime]

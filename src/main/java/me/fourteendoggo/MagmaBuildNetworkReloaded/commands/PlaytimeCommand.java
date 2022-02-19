@@ -4,7 +4,6 @@ import me.fourteendoggo.MagmaBuildNetworkReloaded.MBNPlugin;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.commands.handlers.CommandBase;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.commands.handlers.CommandResult;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.commands.handlers.CommandSource;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.cache.UserRepository;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.user.User;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Lang;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Permission;
@@ -19,12 +18,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class PlaytimeCommand extends CommandBase {
-    private final UserRepository userRepository;
     private final DateTimeFormatter dateTimeFormatter;
 
     public PlaytimeCommand(MBNPlugin plugin) {
         super(plugin, Permission.DEFAULT);
-        userRepository = plugin.getBaseRepository().getUserRepository();
         dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     }
 
@@ -32,13 +29,12 @@ public class PlaytimeCommand extends CommandBase {
     protected CommandResult execute(CommandSource source, @NotNull String[] args) {
         if (args.length == 0) {
             if (source.getPlayer().isEmpty()) return CommandResult.PLAYER_ONLY;
-            Player player = source.getPlayer().get();
-            User user = userRepository.get(player.getUniqueId());
+            User user = plugin.getData().getUser(source.getPlayer().get());
             sendPlaytime(user, Lang.PLAYTIME);
         } else if (args.length == 1) {
             Player target = Bukkit.getPlayer(args[0]);
             if (target == null) return CommandResult.TARGET_NOT_FOUND;
-            User user = userRepository.get(target.getUniqueId());
+            User user = plugin.getData().getUser(target);
             if (user == null) return CommandResult.TARGET_NOT_FOUND;
             // TODO check database
             sendPlaytime(user, Lang.PLAYTIME_OTHER);

@@ -1,8 +1,7 @@
-package me.fourteendoggo.MagmaBuildNetworkReloaded.storage.connection;
+package me.fourteendoggo.MagmaBuildNetworkReloaded.storage;
 
 import com.zaxxer.hikari.HikariDataSource;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.MBNPlugin;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.StorageType;
 
 import java.io.File;
 import java.sql.Connection;
@@ -14,8 +13,8 @@ public class ConnectionFactory {
     private final StorageType type;
 
     private ConnectionFactory(MBNPlugin plugin, StorageType type) {
-        this.dataSource = new HikariDataSource();
         this.type = type;
+        dataSource = new HikariDataSource();
         String jdbcUrl;
         if (type == StorageType.MYSQL) {
             String address = plugin.getConfig().getString("database.host", "localhost");
@@ -28,7 +27,7 @@ public class ConnectionFactory {
             File file = new File(plugin.getDataFolder(), "database.h2");
             jdbcUrl = "jdbc:h2:file:" + file.getAbsolutePath();
             dataSource.setDriverClassName("org.h2.Driver");
-        } // todo add support for other databases
+        } // TODO add support for other databases
         dataSource.setJdbcUrl(jdbcUrl);
         dataSource.setMaximumPoolSize(10);
         dataSource.setPoolName("mbn - hikari pool");

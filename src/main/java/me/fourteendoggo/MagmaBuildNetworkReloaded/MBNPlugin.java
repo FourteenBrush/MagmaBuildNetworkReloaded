@@ -4,22 +4,17 @@ import me.fourteendoggo.MagmaBuildNetworkReloaded.commands.HomeCommand;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.commands.PlaytimeCommand;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.commands.VanishCommand;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.listeners.PlayerListener;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.BaseRepository;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.DelegatingStorage;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.Storage;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.StorageType;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.connection.ConnectionFactory;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.*;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.impl.SqlStorage;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Lang;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Settings;
 import org.bukkit.Bukkit;
-import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class MBNPlugin extends JavaPlugin {
     private DelegatingStorage storage;
     private final Settings settings = new Settings();
-    private final BaseRepository baseRepository = new BaseRepository();
+    private final RemoteDataCache remoteDataCache = new RemoteDataCache(this);
 
     @Override
     public void onEnable() {
@@ -33,8 +28,7 @@ public class MBNPlugin extends JavaPlugin {
         new HomeCommand(this).register("home", true);
         new VanishCommand(this).register("vanish", true);
         new PlaytimeCommand(this).register("playtime", false);
-        PluginManager pm = Bukkit.getPluginManager();
-        pm.registerEvents(new PlayerListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new PlayerListener(this), this);
     }
 
     private Storage getStorage(StorageType type, ConnectionFactory connectionFactory) {
@@ -56,7 +50,7 @@ public class MBNPlugin extends JavaPlugin {
         return settings;
     }
 
-    public BaseRepository getBaseRepository() {
-        return baseRepository;
+    public RemoteDataCache getData() {
+        return remoteDataCache;
     }
 }

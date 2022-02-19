@@ -18,7 +18,6 @@ import java.util.function.UnaryOperator;
 
 public class User {
     private final UUID id;
-    private boolean dirty = false;
     private final BukkitRunnable actionbar;
     private final Reference<Player> player;
     private final AtomicReference<UserSnapshot> snapshot;
@@ -34,18 +33,7 @@ public class User {
         return id;
     }
 
-    public boolean isDirty() {
-        return dirty;
-    }
-
-    public void setDirty(boolean dirty) {
-        this.dirty = dirty;
-    }
-
     public void setSnapshot(UserSnapshot userSnapshot) {
-        if (getData() == null) {
-            dirty = true;
-        }
         snapshot.set(userSnapshot);
     }
 
@@ -55,7 +43,6 @@ public class User {
 
     public void update(UnaryOperator<UserSnapshot> op) {
         snapshot.updateAndGet(op);
-        dirty = true;
     }
 
     public Player getPlayer() {
@@ -81,12 +68,12 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return dirty == user.dirty && id.equals(user.id) && player.equals(user.player) && snapshot.equals(user.snapshot);
+        return id.equals(user.id) && player.equals(user.player) && snapshot.equals(user.snapshot);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, dirty, player, snapshot);
+        return Objects.hash(id, player, snapshot);
     }
 
     private static class Actionbar extends BukkitRunnable {

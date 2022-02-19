@@ -4,9 +4,9 @@ import me.fourteendoggo.MagmaBuildNetworkReloaded.chat.ChatChannel;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.kingdom.Kingdom;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.kingdom.KingdomRank;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.kingdom.KingdomType;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.ConnectionFactory;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.Storage;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.StorageType;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.connection.ConnectionFactory;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.user.UserSnapshot;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.user.profiles.ChatProfile;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.user.profiles.MembershipProfile;
@@ -69,7 +69,7 @@ public class SqlStorage implements Storage {
                 StatisticsProfile statisticsProfile = new StatisticsProfile(id, playtime, level, firstJoin);
                 KingdomRank kingdomRank = KingdomRank.fromString(rs.getString("kingdom_rank"));
                 MembershipProfile membershipProfile = new MembershipProfile(new Kingdom("test", KingdomType.YEXORA, null), kingdomRank);
-                // TODO don't load kingdom, get it from cache, fix constructor, load homes too
+                // TODO don't load kingdom, get it from cache, fix constructor
                 return new UserSnapshot(new ChatProfile(id), statisticsProfile, membershipProfile, loadHomes(id));
             }
         } catch (SQLException e) {
@@ -138,6 +138,7 @@ public class SqlStorage implements Storage {
         Set<Home> homes = new HashSet<>();
         try (Connection conn = connectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(Constants.LOAD_HOMES)) {
+            ps.setString(1, owner.toString());
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 Location loc = new Location(
@@ -181,6 +182,7 @@ public class SqlStorage implements Storage {
              PreparedStatement ps = conn.prepareStatement(Constants.DELETE_HOME)) {
             ps.setString(1, home.owner().toString());
             ps.setString(2, home.name());
+            ps.execute();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

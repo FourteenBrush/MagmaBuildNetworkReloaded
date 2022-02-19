@@ -44,7 +44,6 @@ public abstract class CommandBase implements CommandExecutor {
                 // already handled above, but it can occur that a command requires extra privileges
                 case NO_PERMISSION -> sender.sendMessage(Lang.NO_PERMISSION.get());
                 case PLAYER_ONLY -> sender.sendMessage(Lang.NO_CONSOLE.get());
-                // TODO send message for the amount of args
                 case SHOW_USAGE -> sender.sendMessage(Utils.colorize(getUsage()));
                 case TARGET_NOT_FOUND -> sender.sendMessage(Lang.PLAYER_NOT_FOUND.get());
                 case FAILED -> sender.sendMessage(ChatColor.RED + "Something went wrong!");
