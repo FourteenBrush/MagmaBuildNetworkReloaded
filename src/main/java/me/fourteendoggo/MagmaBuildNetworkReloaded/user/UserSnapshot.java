@@ -15,16 +15,37 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public record UserSnapshot(ChatProfile chatProfile,
-                           StatisticsProfile statisticsProfile,
-                           MembershipProfile membershipProfile,
-                           Collection<Home> homes) {
+public class UserSnapshot {
+
+    private final ChatProfile chatProfile;
+    private final StatisticsProfile statisticsProfile;
+    private final MembershipProfile membershipProfile;
+    private final Collection<Home> homes;
+
+    public UserSnapshot(ChatProfile chatProfile, StatisticsProfile statisticsProfile, MembershipProfile membershipProfile, Collection<Home> homes) {
+        this.chatProfile = chatProfile;
+        this.statisticsProfile = statisticsProfile;
+        this.membershipProfile = membershipProfile;
+        this.homes = homes;
+    }
 
     public static UserSnapshot createNewFor(UUID id) {
         return new UserSnapshot(new ChatProfile(id),
                 new StatisticsProfile(id),
                 new MembershipProfile(new Kingdom("test", KingdomType.GRAUDOR, null), KingdomRank.INHABITANT),
                 new HashSet<>());
+    }
+
+    public ChatProfile getChatProfile() {
+        return chatProfile;
+    }
+
+    public StatisticsProfile getStatisticsProfile() {
+        return statisticsProfile;
+    }
+
+    public MembershipProfile getMembershipProfile() {
+        return membershipProfile;
     }
 
     @Nullable
