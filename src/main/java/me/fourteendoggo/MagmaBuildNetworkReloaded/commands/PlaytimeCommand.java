@@ -15,21 +15,22 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
 public class PlaytimeCommand extends CommandBase {
     private final DateTimeFormatter dateTimeFormatter;
 
     public PlaytimeCommand(MBNPlugin plugin) {
-        super(plugin, Permission.DEFAULT);
+        super(plugin, Permission.DEFAULT, Lang.PLAYTIME_COMMAND_HELP);
         dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     }
 
     @Override
     protected CommandResult execute(CommandSource source, @NotNull String[] args) {
         if (args.length == 0) {
-            if (source.getPlayer().isEmpty()) return CommandResult.PLAYER_ONLY;
-            User user = plugin.getData().getUser(source.getPlayer().get());
+            if (source.getPlayer() == null) return CommandResult.PLAYER_ONLY;
+            User user = plugin.getData().getUser(source.getPlayer());
             sendPlaytime(user, Lang.PLAYTIME);
         } else if (args.length == 1) {
             Player target = Bukkit.getPlayer(args[0]);
@@ -47,14 +48,9 @@ public class PlaytimeCommand extends CommandBase {
     }
 
     private void sendPlaytime(User user, Lang message) {
-        long firstJoin = user.getData().statisticsProfile().getFirstJoin();
-        LocalDateTime dateTime = LocalDateTime.from(Instant.ofEpochMilli(firstJoin));
-        Player player = user.getPlayer();
-        player.sendMessage(message.get(formatPlaytime(player), dateTime.format(dateTimeFormatter)));
-    }
-
-    @Override
-    protected @NotNull String getUsage() {
-        return Lang.PLAYTIME_COMMAND_HELP.get();
+        long firstJoin = user.getData().getStatisticsProfile().getFirstJoin();
+        Instant time = Instant.ofEpochMilli(firstJoin);
+        LocalDateTime dateTime = LocalDateTime.ofInstant(time, ZoneOffset.UTC);
+        message.sendTo(user, formatPlaytime(user.getPlayer()), dateTime.format(dateTimeFormatter));
     }
 }

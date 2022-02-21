@@ -1,7 +1,6 @@
 package me.fourteendoggo.MagmaBuildNetworkReloaded.commands.handlers;
 
 public enum CommandResult {
-
     SUCCESS,
     FAILED,
     NO_PERMISSION,

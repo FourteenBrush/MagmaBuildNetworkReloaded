@@ -1,5 +1,6 @@
 package me.fourteendoggo.MagmaBuildNetworkReloaded.user;
 
+import com.google.common.collect.ImmutableSet;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.kingdom.Kingdom;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.kingdom.KingdomRank;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.kingdom.KingdomType;
@@ -7,7 +8,7 @@ import me.fourteendoggo.MagmaBuildNetworkReloaded.user.profiles.ChatProfile;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.user.profiles.MembershipProfile;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.user.profiles.StatisticsProfile;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.records.Home;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.UnmodifiableView;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -48,7 +49,11 @@ public class UserSnapshot {
         return membershipProfile;
     }
 
-    @Nullable
+    @UnmodifiableView
+    public Collection<Home> getHomes() {
+        return ImmutableSet.copyOf(homes);
+    }
+
     public Home getHome(String name) {
         return homes.stream().filter(home -> home.name().equals(name)).findFirst().orElse(null);
     }

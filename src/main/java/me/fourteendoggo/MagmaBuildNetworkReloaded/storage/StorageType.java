@@ -2,8 +2,8 @@ package me.fourteendoggo.MagmaBuildNetworkReloaded.storage;
 
 public enum StorageType {
 
-    MYSQL("MySQL", "MySQL database online mode"),
-    H2("H2", "H2 database embedded mode");
+    MYSQL("MySQL", "MySQL database in online mode"),
+    H2("H2", "H2 database in embedded mode");
 
     private final String name;
     private final String description;

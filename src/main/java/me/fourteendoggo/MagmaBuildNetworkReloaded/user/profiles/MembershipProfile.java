@@ -2,6 +2,7 @@ package me.fourteendoggo.MagmaBuildNetworkReloaded.user.profiles;
 
 import me.fourteendoggo.MagmaBuildNetworkReloaded.kingdom.Kingdom;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.kingdom.KingdomRank;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -14,10 +15,12 @@ public class MembershipProfile {
         this.kingdomRank = kingdomRank;
     }
 
+    @Nullable
     public Kingdom getKingdom() {
         return kingdom;
     }
 
+    @Nullable
     public KingdomRank getKingdomRank() {
         return kingdomRank;
     }

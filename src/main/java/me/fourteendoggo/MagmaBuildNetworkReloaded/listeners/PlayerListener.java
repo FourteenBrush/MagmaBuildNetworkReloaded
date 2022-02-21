@@ -52,7 +52,6 @@ public class PlayerListener implements Listener {
             user.setSnapshot(snapshot);
             user.onDataLoadComplete(plugin);
             plugin.getData().cacheUser(user);
-            plugin.getLogger().info("users home size is " + snapshot.getHomesAmount());
         }
     }
 
@@ -60,14 +59,14 @@ public class PlayerListener implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         User user = plugin.getData().removeUser(event.getPlayer().getUniqueId());
         user.logout();
-        plugin.getStorage().saveUser(user.getData());
-        plugin.getLogger().info("Saved user " + user.getPlayer().getName());
+        plugin.getStorage().saveUser(user.getData()).whenComplete((v, t) ->
+                plugin.getLogger().info("Saved user " + user.getPlayer().getName()));
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onChat(AsyncPlayerChatEvent event) {
         User user = plugin.getData().getUser(event.getPlayer());
-        if (!user.getData().chatProfile().mayChat() || chatCache.getIfPresent(user.getId()) != null) {
+        if (!user.getData().getChatProfile().mayChat() || chatCache.getIfPresent(user.getId()) != null) {
             event.setCancelled(true);
         }
     }

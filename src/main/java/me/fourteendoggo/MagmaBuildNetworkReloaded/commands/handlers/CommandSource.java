@@ -2,19 +2,16 @@ package me.fourteendoggo.MagmaBuildNetworkReloaded.commands.handlers;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-
-import java.util.Optional;
+import org.jetbrains.annotations.Nullable;
 
 public record CommandSource(CommandSender sender) {
 
-    public Optional<Player> getPlayer() {
-        if (sender instanceof Player player) {
-            return Optional.of(player);
-        }
-        return Optional.empty();
+    public boolean isPlayer() {
+        return sender instanceof Player;
     }
 
-    public void sendMessage(String message) {
-        sender.sendMessage(message);
+    @Nullable
+    public Player getPlayer() {
+        return sender instanceof Player player ? player : null;
     }
 }

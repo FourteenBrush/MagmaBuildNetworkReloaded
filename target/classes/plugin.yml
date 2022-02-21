@@ -16,3 +16,5 @@ commands:
   playtime:
     description: A command to show your or someone elses playtime
     aliases: [onlinetime]
+  userinfo:
+    description: A command to display info about a certain user

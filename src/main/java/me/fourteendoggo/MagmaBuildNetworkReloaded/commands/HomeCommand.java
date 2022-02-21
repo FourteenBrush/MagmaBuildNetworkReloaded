@@ -10,25 +10,24 @@ import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Permission;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Utils;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.records.Home;
 import net.md_5.bungee.api.ChatColor;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Level;
 
 public class HomeCommand extends CommandBase {
 
     public HomeCommand(MBNPlugin plugin) {
-        super(plugin, Permission.DEFAULT);
+        super(plugin, Permission.DEFAULT, Lang.HOME_COMMAND_HELP);
     }
 
     @Override
     protected CommandResult execute(CommandSource source, String[] args) {
-        if (source.getPlayer().isEmpty()) return CommandResult.PLAYER_ONLY;
-        User user = plugin.getData().getUser(source.getPlayer().get().getUniqueId());
+        if (source.getPlayer() == null) return CommandResult.PLAYER_ONLY;
+        User user = plugin.getData().getUser(source.getPlayer().getUniqueId());
         if (args.length == 2) {
             switch (args[0]) {
                 case "create" -> createHome(args[1], user);
@@ -47,13 +46,13 @@ public class HomeCommand extends CommandBase {
     private void createHome(String name, User user) {
         int homesLimit = plugin.getSettings().getHomesLimitFor(user);
         if (user.getData().getHomesAmount() >= homesLimit) {
-            user.getPlayer().sendMessage(Lang.HOME_LIMIT_REACHED.get());
+            Lang.HOME_LIMIT_REACHED.sendTo(user);
         } else if (user.getData().getHome(name) != null) {
-            user.getPlayer().sendMessage(Lang.HOME_CANNOT_HAVE_DUPLICATES.get());
+            Lang.HOME_CANNOT_HAVE_DUPLICATES.sendTo(user);
         } else {
             Home home = new Home(name, user.getId(), user.getPlayer().getLocation());
             plugin.getStorage().createHome(home).whenComplete((v, t) -> {
-                user.getPlayer().sendMessage(Lang.HOME_CREATED_NEW.get(name));
+                Lang.HOME_CREATED_NEW.sendTo(user, name);
                 user.getData().addHome(home);
             }).exceptionally(onException(user, Lang.ERROR_CREATING_HOME));
         }
@@ -63,19 +62,18 @@ public class HomeCommand extends CommandBase {
         Home home = user.getData().getHome(name);
         if (home != null) {
             plugin.getStorage().deleteHome(home).whenComplete((v, t) -> {
-                user.getPlayer().sendMessage(Lang.HOME_DELETED.get(name));
+                Lang.HOME_DELETED.sendTo(user, name);
                 user.getData().removeHome(home);
             }).exceptionally(onException(user, Lang.ERROR_DELETING_HOME));
         } else {
-            user.getPlayer().sendMessage(Lang.HOME_NAME_NOT_FOUND.get());
+            Lang.HOME_NAME_NOT_FOUND.sendTo(user);
         }
     }
 
     private Function<Throwable, Void> onException(User user, Lang lang) {
         return t -> {
-            String message = lang.get();
-            user.getPlayer().sendMessage(message);
-            plugin.getLogger().log(Level.SEVERE, ChatColor.stripColor(message), t);
+            lang.sendTo(user);
+            plugin.getLogger().log(Level.SEVERE, ChatColor.stripColor(lang.get()), t);
             return null;
         };
     }
@@ -84,16 +82,16 @@ public class HomeCommand extends CommandBase {
         Home home = user.getData().getHome(name);
         if (home != null) {
             user.getPlayer().teleport(home.location());
-            user.getPlayer().sendMessage(Lang.HOME_TELEPORTED_TO.get(name));
+            Lang.HOME_TELEPORTED_TO.sendTo(user, name);
         } else {
-            user.getPlayer().sendMessage(Lang.HOME_NAME_NOT_FOUND.get());
+            Lang.HOME_NAME_NOT_FOUND.sendTo(user);
         }
     }
 
     private void sendAllHomes(User user) {
-        Collection<Home> homes = user.getData().homes();
+        Collection<Home> homes = user.getData().getHomes();
         if (homes.isEmpty()) {
-            user.getPlayer().sendMessage(Lang.HOMES_NO_HOMES_SET.get());
+            Lang.HOME_NAME_NOT_FOUND.sendTo(user);
         } else {
             StringBuilder builder = new StringBuilder();
             builder.append("&e------------ &7[&eHomes&7] &e------------\n")
@@ -116,21 +114,14 @@ public class HomeCommand extends CommandBase {
 
     @Override
     protected @Nullable List<String> onTabComplete(CommandSource source, String[] args) {
-        if (args.length == 1) {
-            return tabComplete(args[0], Arrays.asList("create", "remove", "list", "teleport"));
-        } else if (args.length == 2 && source.getPlayer().isPresent()) {
-            switch (args[0]) {
-                case "remove", "delete", "teleport", "tp" -> {
-                    User user = plugin.getData().getUser(source.getPlayer().get().getUniqueId());
-                    return tabComplete(args[1], user.getData().getHomeNames());
-                }
+        if (source.getPlayer() == null) return super.onTabComplete(source, args);
+        return switch (args.length) {
+            case 1 -> tabComplete(args[0], "create", "remove", "list", "teleport");
+            case 2 -> {
+                Set<String> homeNames = plugin.getData().getUser(source.getPlayer()).getData().getHomeNames();
+                yield tabComplete(args[1], args[0], new String[]{"remove", "delete", "teleport", "tp"}, homeNames);
             }
-        }
-        return super.onTabComplete(source, args);
-    }
-
-    @Override
-    protected @NotNull String getUsage() {
-        return Lang.HOME_COMMAND_HELP.get();
+            default -> super.onTabComplete(source, args);
+        };
     }
 }

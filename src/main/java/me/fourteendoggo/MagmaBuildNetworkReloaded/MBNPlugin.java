@@ -2,6 +2,7 @@ package me.fourteendoggo.MagmaBuildNetworkReloaded;
 
 import me.fourteendoggo.MagmaBuildNetworkReloaded.commands.HomeCommand;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.commands.PlaytimeCommand;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.commands.UserinfoCommand;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.commands.VanishCommand;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.listeners.PlayerListener;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.*;
@@ -22,26 +23,25 @@ public class MBNPlugin extends JavaPlugin {
         saveDefaultConfig();
         Lang.initialize(this);
         StorageType type = StorageType.fromString(getConfig().getString("database.type"), StorageType.H2);
-        getLogger().info("Using " + type.getName() + " storage");
-        storage = new DelegatingStorage(getStorage(type, ConnectionFactory.create(this, type)), getLogger());
+        Storage impl = switch (type) {
+            case H2, MYSQL -> new SqlStorage(ConnectionFactory.create(this, type));
+        };
+        storage = new DelegatingStorage(impl, getLogger());
         storage.initialize();
         remoteDataCache.startSaveTask(this);
+        getLogger().info("Using " + type.getDescription() + " for storage");
         new HomeCommand(this).register("home", true);
         new VanishCommand(this).register("vanish", true);
         new PlaytimeCommand(this).register("playtime", false);
+        new UserinfoCommand(this).register("userinfo", true);
         Bukkit.getPluginManager().registerEvents(new PlayerListener(this), this);
         getLogger().info("Finished initialisation");
-    }
-
-    private Storage getStorage(StorageType type, ConnectionFactory connectionFactory) {
-        return switch (type) {
-            case H2, MYSQL -> new SqlStorage(connectionFactory);
-        };
     }
 
     @Override
     public void onDisable() {
         storage.close();
+        Bukkit.getScheduler().cancelTasks(this); // explicit call
     }
 
     public DelegatingStorage getStorage() {

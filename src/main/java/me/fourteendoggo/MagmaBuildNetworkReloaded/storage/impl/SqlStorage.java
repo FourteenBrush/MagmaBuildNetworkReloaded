@@ -83,12 +83,12 @@ public class SqlStorage implements Storage {
     public void saveUser(UserSnapshot snapshot) {
         try (Connection conn = connectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(Constants.SAVE_USER)) {
-            ps.setInt(1, snapshot.statisticsProfile().getMinutesPlayed());
-            ps.setInt(2, snapshot.statisticsProfile().getLevel());
+            ps.setInt(1, snapshot.getStatisticsProfile().getMinutesPlayed());
+            ps.setInt(2, snapshot.getStatisticsProfile().getLevel());
             ps.setLong(3, System.currentTimeMillis());
-            ps.setString(4, snapshot.membershipProfile().getKingdom().getName());
-            ps.setString(5, snapshot.membershipProfile().getKingdomRank().name());
-            ps.setString(6, snapshot.statisticsProfile().getId().toString());
+            ps.setString(4, snapshot.getMembershipProfile().getKingdom().getName());
+            ps.setString(5, snapshot.getMembershipProfile().getKingdomRank().name());
+            ps.setString(6, snapshot.getStatisticsProfile().getId().toString());
             ps.execute();
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -99,14 +99,14 @@ public class SqlStorage implements Storage {
     public void createUser(UserSnapshot snapshot) {
         try (Connection conn = connectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(Constants.CREATE_USER)) {
-            ps.setString(1, snapshot.statisticsProfile().getId().toString());
-            ps.setInt(2, snapshot.statisticsProfile().getMinutesPlayed());
-            ps.setInt(3, snapshot.statisticsProfile().getLevel());
+            ps.setString(1, snapshot.getStatisticsProfile().getId().toString());
+            ps.setInt(2, snapshot.getStatisticsProfile().getMinutesPlayed());
+            ps.setInt(3, snapshot.getStatisticsProfile().getLevel());
             long now = System.currentTimeMillis();
             ps.setLong(4, now);
             ps.setLong(5, now);
-            ps.setString(6, snapshot.membershipProfile().getKingdom().getName());
-            ps.setString(7, snapshot.membershipProfile().getKingdomRank().name());
+            ps.setString(6, snapshot.getMembershipProfile().getKingdom().getName());
+            ps.setString(7, snapshot.getMembershipProfile().getKingdomRank().name());
             ps.execute();
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -152,7 +152,6 @@ public class SqlStorage implements Storage {
                 homes.add(new Home(rs.getString("name"),
                         UUID.fromString(rs.getString("owner")),
                         loc));
-                Bukkit.getLogger().info("loaded home ");
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);

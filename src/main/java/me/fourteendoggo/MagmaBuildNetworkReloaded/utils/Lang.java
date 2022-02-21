@@ -1,6 +1,8 @@
 package me.fourteendoggo.MagmaBuildNetworkReloaded.utils;
 
 import me.fourteendoggo.MagmaBuildNetworkReloaded.MBNPlugin;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.user.User;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -49,7 +51,7 @@ public enum Lang {
     ERROR_DELETING_HOME("error.deleting-home", "&cSomething went wrong deleting a home!"),
     ERROR_FAILED_TO_LOAD_DATA("error.failed-to-load-data", "&cWe failed to load your player data, please try again in a while!"),
 
-    /* command help messages ~ cannot be overridden */
+    /* command help messages - cannot be overridden */
 
     HOME_COMMAND_HELP("command-help.home", """
             &e------------ &7[&eHome Command&7] &e------------
@@ -93,6 +95,14 @@ public enum Lang {
         return value;
     }
 
+    public void sendTo(CommandSender target, String... args) {
+        target.sendMessage(get(args));
+    }
+
+    public void sendTo(User target, String... args) {
+        sendTo(target.getPlayer(), args);
+    }
+
     public static void initialize(MBNPlugin plugin) {
         File file = new File(plugin.getDataFolder(), "lang.yml");
         if (!file.exists()) {
@@ -100,20 +110,20 @@ public enum Lang {
         }
         FileConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         boolean fileNeedsToBeSaved = false;
-        for (Lang l : values()) {
+        for (Lang entry : values()) {
             String real;
-            if (l.name().endsWith("COMMAND_HELP")) {
-                real = l.fallback; // command help messages cannot be overridden and aren't placed in the lang file either
+            if (entry.name().endsWith("COMMAND_HELP")) {
+                real = entry.fallback; // command help messages cannot be overridden and aren't placed in the lang file either
             } else {
-                real = yaml.getString(l.path);
+                fileNeedsToBeSaved = true;
+                real = yaml.getString(entry.path);
                 if (real == null || real.isEmpty() || real.isBlank()) {
-                    plugin.getLogger().warning("Missing or empty lang data found on path '" + l.path + "' replacing it with fallback");
-                    yaml.set(l.path, l.fallback);
-                    real = l.fallback;
-                    fileNeedsToBeSaved = true;
+                    plugin.getLogger().warning("Missing or empty lang data found on path '" + entry.path + "' replacing it with fallback");
+                    yaml.set(entry.path, entry.fallback);
+                    real = entry.fallback;
                 }
             }
-            l.value = Utils.colorizeSupportHex(real);
+            entry.value = Utils.colorizeSupportHex(real);
         }
         if (fileNeedsToBeSaved) {
             try {

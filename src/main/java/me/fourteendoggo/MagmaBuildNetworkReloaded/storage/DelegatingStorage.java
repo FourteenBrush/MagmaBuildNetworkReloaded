@@ -54,12 +54,11 @@ public class DelegatingStorage {
     }
 
     public CompletableFuture<Void> saveUser(UserSnapshot snapshot) {
-        logger.info("Saving user...");
-        return makeFuture(() -> storage.saveUser(snapshot), "Failed to save user " + snapshot.statisticsProfile().getId());
+        return makeFuture(() -> storage.saveUser(snapshot), "Failed to save user " + snapshot.getStatisticsProfile().getId());
     }
 
     public CompletableFuture<Void> createUser(UserSnapshot snapshot) {
-        return makeFuture(() -> storage.createUser(snapshot), "Failed to create user " + snapshot.statisticsProfile().getId());
+        return makeFuture(() -> storage.createUser(snapshot), "Failed to create user " + snapshot.getStatisticsProfile().getId());
     }
 
     public CompletableFuture<ChatChannel> loadChannel(String name) {
@@ -83,7 +82,6 @@ public class DelegatingStorage {
     }
 
     public CompletableFuture<Void> createHome(Home home) {
-        logger.info("Created a home: " + home.name());
         return makeFuture(() -> storage.createHome(home), "Failed to create home " + home.name() + " for user " + home.owner());
     }
 

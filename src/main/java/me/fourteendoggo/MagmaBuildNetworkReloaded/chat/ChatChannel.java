@@ -5,6 +5,7 @@ import me.fourteendoggo.MagmaBuildNetworkReloaded.user.User;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Lang;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Utils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.UnmodifiableView;
 
 import java.util.*;
 
@@ -64,44 +65,44 @@ public class ChatChannel {
 
     public boolean join(User user, boolean showMessage) {
         if (joinedUsers.contains(user)) {
-            user.getPlayer().sendMessage(Lang.CHANNEL_ALREADY_JOINED.get());
+            Lang.CHANNEL_ALREADY_JOINED.sendTo(user);
             return false;
         }
         if (!user.getPlayer().hasPermission(joinPermission)) {
-            user.getPlayer().sendMessage(Lang.NO_PERMISSION.get());
+            Lang.NO_PERMISSION.sendTo(user);
             return false;
         }
         if (!whitelist.contains(user.getId())) {
-            user.getPlayer().sendMessage(Lang.CHANNEL_NOT_WHITELISTED.get());
+            Lang.CHANNEL_NOT_WHITELISTED.sendTo(user);
             return false;
         }
-        user.getData().chatProfile().addChannel(this);
+        user.getData().getChatProfile().addChannel(this);
         if (showMessage) {
-            user.getPlayer().sendMessage(Lang.CHANNEL_JOINED.get(getDisplayName()));
+            Lang.CHANNEL_JOINED.sendTo(user, displayName);
         }
         return true;
     }
 
     public boolean leave(User user, boolean showMessage) {
         if (!joinedUsers.remove(user)) {
-            user.getPlayer().sendMessage(Lang.CHANNEL_NOT_JOINED.get());
+            Lang.CHANNEL_NOT_JOINED.sendTo(user);
             return false;
         }
-        user.getData().chatProfile().removeChannel(this);
+        user.getData().getChatProfile().removeChannel(this);
         if (showMessage) {
-            user.getPlayer().sendMessage(Lang.CHANNEL_LEFT.get(getDisplayName()));
+            Lang.CHANNEL_LEFT.sendTo(user, displayName);
         }
         return true;
     }
 
     public boolean setAsCurrentFor(User user) {
-        ChatChannel currentChannel = user.getData().chatProfile().getCurrentChannel();
+        ChatChannel currentChannel = user.getData().getChatProfile().getCurrentChannel();
         if (currentChannel != null && currentChannel.getName().equals(getName())) return false;
-        if (!user.getData().chatProfile().isInChannel(this)) {
+        if (!user.getData().getChatProfile().isInChannel(this)) {
             join(user, false);
         }
-        user.getData().chatProfile().setCurrentChannel(this);
-        user.getPlayer().sendMessage(Lang.CHANNEL_SET_CURRENT.get(getDisplayName()));
+        user.getData().getChatProfile().setCurrentChannel(this);
+        Lang.CHANNEL_SET_CURRENT.sendTo(user, displayName);
         return true;
     }
 
@@ -109,6 +110,7 @@ public class ChatChannel {
         joinedUsers.forEach(user -> user.getPlayer().sendMessage(message));
     }
 
+    @UnmodifiableView
     public List<String> getMotd() {
         return ImmutableList.copyOf(motd);
     }

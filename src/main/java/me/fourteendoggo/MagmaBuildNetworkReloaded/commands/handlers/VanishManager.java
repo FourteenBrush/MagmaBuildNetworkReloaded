@@ -14,10 +14,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerGameModeChangeEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -43,25 +41,25 @@ public class VanishManager {
 
     public boolean vanish(Player player, boolean showMessage) {
         if (!vanished.add(player.getUniqueId())) {
-            player.sendMessage(Lang.VANISH_ALREADY_VANISHED.get());
+            Lang.VANISH_ALREADY_VANISHED.sendTo(player);
             return false;
         }
         handleVanish(player);
         if (showMessage) {
-            player.sendMessage(Lang.VANISH_ENABLED.get());
+            Lang.VANISH_ENABLED.sendTo(player);
         }
         return true;
     }
 
     public void vanishOther(Player player, boolean showMessage, CommandSender executor) {
         if (!vanished.add(player.getUniqueId())) {
-            executor.sendMessage(Lang.VANISH_OTHER_ALREADY_VANISHED.get());
+            Lang.VANISH_OTHER_ALREADY_VANISHED.sendTo(executor);
             return;
         }
         handleVanish(player);
         if (showMessage) {
-            player.sendMessage(Lang.VANISH_ENABLED_BY_OTHER.get(executor.getName()));
-            executor.sendMessage(Lang.VANISH_ENABLED_FOR_OTHER.get(player.getName()));
+            Lang.VANISH_ENABLED_BY_OTHER.sendTo(player, executor.getName());
+            Lang.VANISH_ENABLED_FOR_OTHER.sendTo(executor, player.getName());
         }
     }
 
@@ -71,7 +69,7 @@ public class VanishManager {
                 p.hidePlayer(plugin, player);
             }
             if (!p.equals(player) && Permission.MODERATOR.has(p)) {
-                p.sendMessage(Lang.VANISH_ANNOUNCE.get(player.getName()));
+                Lang.VANISH_ANNOUNCE.sendTo(p, player.getName());
             }
         });
         handleCommon(player, true);
@@ -85,25 +83,25 @@ public class VanishManager {
 
     public boolean unVanish(Player player, boolean showMessage) {
         if (!vanished.remove(player.getUniqueId())) {
-            player.sendMessage(Lang.VANISH_ALREADY_VISIBLE.get());
+            Lang.VANISH_ALREADY_VISIBLE.sendTo(player);
             return false;
         }
         handleUnVanish(player);
         if (showMessage) {
-            player.sendMessage(Lang.VANISH_DISABLED.get());
+            Lang.VANISH_DISABLED.sendTo(player);
         }
         return true;
     }
 
     public void unVanishOther(Player player, boolean showMessage, CommandSender executor) {
         if (!vanished.remove(player.getUniqueId())) {
-            executor.sendMessage(Lang.VANISH_OTHER_ALREADY_VISIBLE.get());
+            Lang.VANISH_OTHER_ALREADY_VISIBLE.sendTo(executor);
             return;
         }
         handleUnVanish(player);
         if (showMessage) {
-            player.sendMessage(Lang.VANISH_DISABLED_BY_OTHER.get());
-            executor.sendMessage(Lang.VANISH_DISABLED_FOR_OTHER.get(player.getName()));
+            Lang.VANISH_DISABLED_BY_OTHER.sendTo(player, executor.getName());
+            Lang.VANISH_DISABLED_FOR_OTHER.sendTo(executor, player.getName());
         }
     }
 
@@ -111,7 +109,7 @@ public class VanishManager {
         Bukkit.getOnlinePlayers().forEach(p -> {
             p.showPlayer(plugin, player);
             if (!p.equals(player) && Permission.MODERATOR.has(p)) {
-                p.sendMessage(Lang.VANISH_BACK_VISIBLE_ANNOUNCE.get(player.getName()));
+                Lang.VANISH_BACK_VISIBLE_ANNOUNCE.sendTo(p, player.getName());
             }
         });
         handleCommon(player, false);
@@ -151,14 +149,14 @@ public class VanishManager {
 
     public void sendVanishedPlayerListTo(CommandSender target) {
         if (vanished.isEmpty()) {
-            target.sendMessage(Lang.VANISH_NO_PLAYERS_VANISHED.get());
+            Lang.VANISH_NO_PLAYERS_VANISHED.sendTo(target);
         } else {
             StringBuilder builder = new StringBuilder();
             builder.append(ChatColor.GOLD).append("Vanished players: ");
             vanished.forEach(uuid -> {
                 if (builder.length() > 19)
                     builder.append(", ");
-                // wont throw exception as uuid's of players are removed when they leave
+                //noinspection all
                 builder.append(Bukkit.getPlayer(uuid).getName());
             });
             target.sendMessage(builder.toString());
@@ -169,9 +167,9 @@ public class VanishManager {
         if (!vanish(player, true)) return;
         Bukkit.getOnlinePlayers().forEach(p -> {
             if (!p.equals(player) && Permission.MODERATOR.has(p)) {
-                p.sendMessage(Lang.VANISH_ANNOUNCE.get(player.getName()));
+                Lang.VANISH_ANNOUNCE.sendTo(p, player.getName());
             } else {
-                p.sendMessage(Lang.LEAVE_MESSAGE.get(player.getName()));
+                Lang.LEAVE_MESSAGE.sendTo(p, player.getName());
             }
         });
     }
@@ -180,9 +178,9 @@ public class VanishManager {
         if (!unVanish(player, true)) return;
         Bukkit.getOnlinePlayers().forEach(p -> {
             if (!p.equals(player) && Permission.MODERATOR.has(p)) {
-                p.sendMessage(Lang.VANISH_BACK_VISIBLE_ANNOUNCE.get(player.getName()));
+                Lang.VANISH_BACK_VISIBLE_ANNOUNCE.sendTo(p, player.getName());
             } else {
-                p.sendMessage(Lang.JOIN_MESSAGE.get(player.getName()));
+                Lang.JOIN_MESSAGE.sendTo(p, player.getName());
             }
         });
     }
@@ -195,7 +193,7 @@ public class VanishManager {
             byte status = event.getPlayer().getPersistentDataContainer().getOrDefault(namespacedKey, PersistentDataType.BYTE, (byte)0);
             if (status == 1 || status == 2) {
                 event.setJoinMessage(null);
-                vanish(event.getPlayer(), false);
+                vanish(player, false);
                 sendMessageForStaffExclude(Lang.JOINED_VANISHED.get(player.getName()), player);
             } else {
                 event.setJoinMessage(Lang.JOIN_MESSAGE.get(player.getName()));
@@ -220,8 +218,23 @@ public class VanishManager {
 
         @EventHandler
         public void onTeleport(PlayerTeleportEvent event) {
+            //noinspection all
             if (!event.getFrom().getWorld().getName().equals(event.getTo().getWorld().getName())) {
                 allowFlight(event.getPlayer());
+            }
+        }
+
+        @EventHandler
+        public void onFoodLevelChange(FoodLevelChangeEvent event) {
+            if (vanished.contains(event.getEntity().getUniqueId())) {
+                event.setCancelled(true);
+            }
+        }
+
+        @EventHandler
+        public void onArrowPickup(PlayerPickupArrowEvent event) {
+            if (vanished.contains(event.getPlayer().getUniqueId())) {
+                event.setCancelled(true);
             }
         }
 
