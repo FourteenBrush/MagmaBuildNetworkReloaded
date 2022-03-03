@@ -28,7 +28,7 @@ public class UserinfoCommand extends CommandBase {
         if (args.length > 0) {
             Player target = Bukkit.getPlayer(args[0]);
             if (target != null) {
-                handleResult(plugin.getData().getUser(target).getData(), target, source.sender());
+                handleResult(plugin.getCache().getUser(target).getData(), target, source.sender());
             } else {
                 CommandResult[] result = new CommandResult[1];
                 OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(args[0]);
@@ -49,11 +49,12 @@ public class UserinfoCommand extends CommandBase {
         StringBuilder builder = new StringBuilder();
         String homesLimit = viewStatsFor != null ? String.valueOf(plugin.getSettings().getHomesLimitFor(viewStatsFor)) : "?";
         String output = builder.append("&e------------ &7[&eUser Info&7] &e------------\n")
-                .append("&6UUID: ").append("&7").append(snapshot.getStatisticsProfile().getId())
-                .append("\n&6Playtime: ").append("&7").append(snapshot.getStatisticsProfile().getMinutesPlayed())
-                .append("\n&6Homes: ").append("&7").append("[").append(snapshot.getHomesAmount()).append("/")
+                .append("&6UUID: &7").append(snapshot.getStatisticsProfile().getId())
+                .append("\n&6Playtime: &7").append(snapshot.getStatisticsProfile().getMinutesPlayed())
+                .append("\n&6Homes: &7").append("[").append(snapshot.getHomesAmount()).append("/")
                     .append(homesLimit).append("]")
-                .append("\n&6Level:&7 ").append(snapshot.getStatisticsProfile().getLevel())
+                .append("\n&6Level: &7").append(snapshot.getStatisticsProfile().getLevel())
+                .append("\n&6Kingdom: &7").append(snapshot.getMembershipProfile().getKingdom().getName())
                 .toString();
         sendTo.sendMessage(Utils.colorize(output));
     }

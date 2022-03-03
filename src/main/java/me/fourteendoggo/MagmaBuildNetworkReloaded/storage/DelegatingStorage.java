@@ -40,6 +40,7 @@ public class DelegatingStorage {
     public void close() {
         try {
             storage.close();
+            logger.info("Closed storage");
         } catch (Exception e) {
             handleException(e, "Failed to close storage");
         }

@@ -30,12 +30,12 @@ public class PlaytimeCommand extends CommandBase {
     protected CommandResult execute(CommandSource source, @NotNull String[] args) {
         if (args.length == 0) {
             if (source.getPlayer() == null) return CommandResult.PLAYER_ONLY;
-            User user = plugin.getData().getUser(source.getPlayer());
+            User user = plugin.getCache().getUser(source.getPlayer());
             sendPlaytime(user, Lang.PLAYTIME);
         } else if (args.length == 1) {
             Player target = Bukkit.getPlayer(args[0]);
             if (target == null) return CommandResult.TARGET_NOT_FOUND;
-            User user = plugin.getData().getUser(target);
+            User user = plugin.getCache().getUser(target);
             if (user == null) return CommandResult.TARGET_NOT_FOUND;
             // TODO check database
             sendPlaytime(user, Lang.PLAYTIME_OTHER);

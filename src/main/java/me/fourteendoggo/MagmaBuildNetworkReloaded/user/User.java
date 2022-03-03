@@ -14,7 +14,6 @@ import java.text.DecimalFormat;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.UnaryOperator;
 
 public class User {
     private final UUID id;
@@ -24,7 +23,7 @@ public class User {
 
     public User(Player bindTo) {
         id = bindTo.getUniqueId();
-        actionbar = new Actionbar(bindTo);
+        actionbar = new Actionbar();
         player = new WeakReference<>(bindTo);
         snapshot = new AtomicReference<>();
     }
@@ -39,10 +38,6 @@ public class User {
 
     public UserSnapshot getData() {
         return snapshot.get();
-    }
-
-    public void update(UnaryOperator<UserSnapshot> op) {
-        snapshot.updateAndGet(op);
     }
 
     public Player getPlayer() {
@@ -61,6 +56,7 @@ public class User {
 
     public void logout() {
         actionbar.cancel();
+        player.clear();
     }
 
     @Override
@@ -76,19 +72,17 @@ public class User {
         return Objects.hash(id, player, snapshot);
     }
 
-    private static class Actionbar extends BukkitRunnable {
-        private final Player player;
+    private class Actionbar extends BukkitRunnable {
         private final DecimalFormat df;
 
-        public Actionbar(Player player) {
-            this.player = player;
-            df = new DecimalFormat("#.##");
+        public Actionbar() {
+            df = new DecimalFormat("#.#");
         }
 
         @Override
         public void run() {
-            String message = Utils.colorize("&a&lHP&r " + df.format(player.getHealth() * 5) + " / 100");
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
+            String message = Utils.colorize("&a&lHP&r " + df.format(getPlayer().getHealth() * 5) + " / 100");
+            getPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
         }
     }
 }

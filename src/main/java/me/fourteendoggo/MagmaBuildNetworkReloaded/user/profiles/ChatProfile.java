@@ -9,14 +9,14 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class ChatProfile {
-    private final UUID userId;
+    private final UUID id;
     /* Assuming that the current channel is also present in the channels */
     private final Map<ChatChannel, ChannelRank> chatChannels;
     private ChatChannel currentChannel = null;
     private boolean muted = false;
 
-    public ChatProfile(UUID userId) {
-        this.userId = userId;
+    public ChatProfile(UUID id) {
+        this.id = id;
         this.chatChannels = new HashMap<>();
     }
 
@@ -48,8 +48,8 @@ public class ChatProfile {
         return muted;
     }
 
-    public boolean setMuted(boolean muted) {
-        return (this.muted != (this.muted = muted));
+    public void setMuted(boolean muted) {
+        this.muted = muted;
     }
 
     public ChannelRank getRank(ChatChannel channel) {
@@ -65,11 +65,11 @@ public class ChatProfile {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ChatProfile that = (ChatProfile) o;
-        return muted == that.muted && userId.equals(that.userId) && chatChannels.size() == that.chatChannels.size() && Objects.equals(currentChannel, that.currentChannel);
+        return muted == that.muted && id.equals(that.id) && chatChannels.size() == that.chatChannels.size() && Objects.equals(currentChannel, that.currentChannel);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(userId, chatChannels, currentChannel, muted);
+        return Objects.hash(id, chatChannels, currentChannel, muted);
     }
 }

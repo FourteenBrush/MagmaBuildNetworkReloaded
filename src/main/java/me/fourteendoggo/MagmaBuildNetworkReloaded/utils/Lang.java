@@ -27,6 +27,7 @@ public enum Lang {
     CHANNEL_NOT_JOINED("channel.not-joined", "&cYou are not in that channel!"),
     CHANNEL_LEFT("channel.left", messageColor() + "You left the channel {0}"),
     CHANNEL_SET_CURRENT("channel.set-as-current", messageColor() + "You set {0} as your current channel"),
+    CHANNEL_NOT_FOUND("channel.not-found", "&cThat channel does not seem to exist!"),
     VANISH_ENABLED("vanish.enabled", "&6You have been vanished"),
     VANISH_ENABLED_BY_OTHER("vanish.enabled-by-other", "&6You have been vanished by {0}"),
     VANISH_ENABLED_FOR_OTHER("vanish.disabled-for-other", messageColor() + "You vanished {0}"),
@@ -50,6 +51,8 @@ public enum Lang {
     ERROR_CREATING_HOME("error.creating-home", "&cSomething went wrong creating a home!"),
     ERROR_DELETING_HOME("error.deleting-home", "&cSomething went wrong deleting a home!"),
     ERROR_FAILED_TO_LOAD_DATA("error.failed-to-load-data", "&cWe failed to load your player data, please try again in a while!"),
+    CHAT_COOLDOWN("cooldown.chat", "&cYou are sending messages too fast, please slow down!"),
+    COMMAND_COOLDOWN("cooldown.command", "&cPlease wait &e{0}&c before reusing this command!"),
 
     /* command help messages - cannot be overridden */
 
@@ -137,4 +140,6 @@ public enum Lang {
     private static String messageColor() {
         return "#83c916";
     }
+
+    // TODO components interface/ enum
 }

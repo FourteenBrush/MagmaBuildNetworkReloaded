@@ -10,28 +10,27 @@ import me.fourteendoggo.MagmaBuildNetworkReloaded.user.profiles.StatisticsProfil
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.records.Home;
 import org.jetbrains.annotations.UnmodifiableView;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class UserSnapshot {
-
     private final ChatProfile chatProfile;
     private final StatisticsProfile statisticsProfile;
     private final MembershipProfile membershipProfile;
-    private final Collection<Home> homes;
+    private final Set<Home> homes;
 
-    public UserSnapshot(ChatProfile chatProfile, StatisticsProfile statisticsProfile, MembershipProfile membershipProfile, Collection<Home> homes) {
+    public UserSnapshot(ChatProfile chatProfile, StatisticsProfile statisticsProfile, MembershipProfile membershipProfile, Set<Home> homes) {
         this.chatProfile = chatProfile;
         this.statisticsProfile = statisticsProfile;
         this.membershipProfile = membershipProfile;
         this.homes = homes;
     }
 
-    public static UserSnapshot createNewFor(UUID id) {
-        return new UserSnapshot(new ChatProfile(id),
+    public static UserSnapshot createNew(UUID id) {
+        return new UserSnapshot(
+                new ChatProfile(id),
                 new StatisticsProfile(id),
                 new MembershipProfile(new Kingdom("test", KingdomType.GRAUDOR, null), KingdomRank.INHABITANT),
                 new HashSet<>());
@@ -50,7 +49,7 @@ public class UserSnapshot {
     }
 
     @UnmodifiableView
-    public Collection<Home> getHomes() {
+    public Set<Home> getHomes() {
         return ImmutableSet.copyOf(homes);
     }
 

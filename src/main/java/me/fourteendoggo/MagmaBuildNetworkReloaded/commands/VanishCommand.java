@@ -4,7 +4,7 @@ import me.fourteendoggo.MagmaBuildNetworkReloaded.MBNPlugin;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.commands.handlers.CommandBase;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.commands.handlers.CommandResult;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.commands.handlers.CommandSource;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.commands.handlers.VanishManager;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.commands.managers.VanishManager;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Lang;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Permission;
 import org.bukkit.Bukkit;

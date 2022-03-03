@@ -1,7 +1,6 @@
 package me.fourteendoggo.MagmaBuildNetworkReloaded.utils;
 
 import net.md_5.bungee.api.ChatColor;
-import org.apache.commons.lang.Validate;
 
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -41,13 +40,5 @@ public class Utils {
             output += output.isEmpty() ? minutes + " minutes" : ", " + minutes + " minutes";
         }
         return output;
-    }
-
-    public static boolean equals(Object... args) {
-        Validate.isTrue(args.length % 2 == 0);
-        for (int i = 0; i < args.length - 1; i++) {
-            if (!args[i].equals(args[++i])) return false;
-        }
-        return true;
     }
 }

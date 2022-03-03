@@ -12,13 +12,14 @@ import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.records.Home;
 import net.md_5.bungee.api.ChatColor;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Level;
 
 public class HomeCommand extends CommandBase {
+    private static final int DEFAULT_HOMES_LIMIT = 2;
+    private static final int MODERATOR_HOMES_LIMIT = 5;
 
     public HomeCommand(MBNPlugin plugin) {
         super(plugin, Permission.DEFAULT, Lang.HOME_COMMAND_HELP);
@@ -27,7 +28,7 @@ public class HomeCommand extends CommandBase {
     @Override
     protected CommandResult execute(CommandSource source, String[] args) {
         if (source.getPlayer() == null) return CommandResult.PLAYER_ONLY;
-        User user = plugin.getData().getUser(source.getPlayer().getUniqueId());
+        User user = plugin.getCache().getUser(source.getPlayer().getUniqueId());
         if (args.length == 2) {
             switch (args[0]) {
                 case "create" -> createHome(args[1], user);
@@ -44,33 +45,33 @@ public class HomeCommand extends CommandBase {
     }
 
     private void createHome(String name, User user) {
-        int homesLimit = plugin.getSettings().getHomesLimitFor(user);
+        int homesLimit = Permission.MODERATOR.has(user) ? MODERATOR_HOMES_LIMIT : DEFAULT_HOMES_LIMIT;
         if (user.getData().getHomesAmount() >= homesLimit) {
             Lang.HOME_LIMIT_REACHED.sendTo(user);
         } else if (user.getData().getHome(name) != null) {
             Lang.HOME_CANNOT_HAVE_DUPLICATES.sendTo(user);
         } else {
             Home home = new Home(name, user.getId(), user.getPlayer().getLocation());
-            plugin.getStorage().createHome(home).whenComplete((v, t) -> {
-                Lang.HOME_CREATED_NEW.sendTo(user, name);
-                user.getData().addHome(home);
-            }).exceptionally(onException(user, Lang.ERROR_CREATING_HOME));
+            user.getData().addHome(home);
+            plugin.getStorage().createHome(home).whenComplete((v, t) ->
+                    Lang.HOME_CREATED_NEW.sendTo(user, name))
+                    .exceptionally(handleException(user, Lang.ERROR_CREATING_HOME));
         }
     }
 
     private void deleteHome(String name, User user) {
         Home home = user.getData().getHome(name);
         if (home != null) {
-            plugin.getStorage().deleteHome(home).whenComplete((v, t) -> {
-                Lang.HOME_DELETED.sendTo(user, name);
-                user.getData().removeHome(home);
-            }).exceptionally(onException(user, Lang.ERROR_DELETING_HOME));
+            user.getData().removeHome(home);
+            plugin.getStorage().deleteHome(home).whenComplete((v, t) ->
+                    Lang.HOME_DELETED.sendTo(user, name))
+                    .exceptionally(handleException(user, Lang.ERROR_DELETING_HOME));
         } else {
             Lang.HOME_NAME_NOT_FOUND.sendTo(user);
         }
     }
 
-    private Function<Throwable, Void> onException(User user, Lang lang) {
+    private Function<Throwable, Void> handleException(User user, Lang lang) {
         return t -> {
             lang.sendTo(user);
             plugin.getLogger().log(Level.SEVERE, ChatColor.stripColor(lang.get()), t);
@@ -89,7 +90,7 @@ public class HomeCommand extends CommandBase {
     }
 
     private void sendAllHomes(User user) {
-        Collection<Home> homes = user.getData().getHomes();
+        Set<Home> homes = user.getData().getHomes();
         if (homes.isEmpty()) {
             Lang.HOME_NAME_NOT_FOUND.sendTo(user);
         } else {
@@ -117,10 +118,7 @@ public class HomeCommand extends CommandBase {
         if (source.getPlayer() == null) return super.onTabComplete(source, args);
         return switch (args.length) {
             case 1 -> tabComplete(args[0], "create", "remove", "list", "teleport");
-            case 2 -> {
-                Set<String> homeNames = plugin.getData().getUser(source.getPlayer()).getData().getHomeNames();
-                yield tabComplete(args[1], args[0], new String[]{"remove", "delete", "teleport", "tp"}, homeNames);
-            }
+            case 2 -> tabComplete(args[1], args[0], new String[]{"remove", "delete", "teleport", "tp"}, source.getUser().getData().getHomeNames());
             default -> super.onTabComplete(source, args);
         };
     }

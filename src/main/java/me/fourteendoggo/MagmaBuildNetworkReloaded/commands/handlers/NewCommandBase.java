@@ -1,6 +1,7 @@
 package me.fourteendoggo.MagmaBuildNetworkReloaded.commands.handlers;
 
 import me.fourteendoggo.MagmaBuildNetworkReloaded.MBNPlugin;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.user.User;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Lang;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Permission;
 import net.md_5.bungee.api.ChatColor;
@@ -9,27 +10,31 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
-import org.bukkit.util.StringUtil;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
-public abstract class CommandBase implements CommandExecutor {
-    private static final List<String> EMPTY_TAB_COMPLETE = Collections.emptyList();
-    protected final MBNPlugin plugin;
+public abstract class NewCommandBase implements CommandExecutor {
+    private final MBNPlugin plugin;
     private final String permission;
     private final Lang usage;
+    private final Map<String, SubCommand> subCommands;
 
-    public CommandBase(MBNPlugin plugin, Permission permission, Lang usage) {
+    public NewCommandBase(MBNPlugin plugin, Permission permission, Lang usage) {
         this(plugin, permission.toString(), usage);
     }
 
-    public CommandBase(MBNPlugin plugin, String permission, Lang usage) {
+    public NewCommandBase(MBNPlugin plugin, String permission, Lang usage) {
         this.plugin = plugin;
         this.permission = permission;
         this.usage = usage;
+        subCommands = new HashMap<>();
     }
 
     @Override
@@ -39,11 +44,18 @@ public abstract class CommandBase implements CommandExecutor {
             return true;
         }
         CommandResult result = CommandResult.FAILED;
+        SubCommand subCommand = subCommands.get(cmd.getName());
         try {
-            result = execute(new CommandSource(sender, plugin), args);
+            if (subCommand == null) {
+                result = execute(new CommandSource(sender), args);
+            } else if (!(sender instanceof Player || subCommand.isAllowConsole())) {
+                result = CommandResult.PLAYER_ONLY;
+            } else if (subCommand.getArgsLength() == args.length) {
+                result = subCommand.execute(new CommandSource(sender), args);
+            }
         } catch (Exception e) {
-            sender.sendMessage(ChatColor.RED + "An error occurred whilst executing that command!");
-            plugin.getLogger().log(Level.SEVERE, "An error occurred whilst executing command '" + cmd.getName() + "':", e);
+            sender.sendMessage(ChatColor.RED + "An error occurred whilst executing that command! Please contact a staff member");
+            plugin.getLogger().log(Level.SEVERE, "An exception occurred whilst executing command '" + cmd.getName() + "' for sender " + sender.getName(), e);
         }
         switch (result) {
             case FAILED -> sender.sendMessage(ChatColor.RED + "Something went wrong!");
@@ -64,40 +76,28 @@ public abstract class CommandBase implements CommandExecutor {
         }
     }
 
-    protected static List<String> tabComplete(String token, String previous, String[] shouldMatch, Collection<String> iterable) {
-        if (getIndex(previous, shouldMatch) >= shouldMatch.length) return EMPTY_TAB_COMPLETE;
-        return tabComplete(token, iterable);
+    protected void addSubCommand(String name, int argsLength, boolean allowConsole, Consumer<String[]> command) {
+        subCommands.put(name, new SubCommand(argsLength, allowConsole) {
+            @Override
+            public CommandResult execute(CommandSource source, String[] args) {
+                command.accept(args);
+                return CommandResult.SUCCESS;
+            }
+        });
     }
 
-    protected static List<String> tabComplete(String token, String previous, String[] shouldMatch, String... iterable) {
-        if (getIndex(previous, shouldMatch) >= shouldMatch.length) return EMPTY_TAB_COMPLETE;
-        return iterable.length != 0 ? tabComplete(token, iterable) : null;
-    }
-
-    private static int getIndex(String previous, String[] shouldMatch) {
-        int index = 1;
-        String str = shouldMatch[0];
-        while (!(previous.equals(str))) {
-            str = shouldMatch[index++];
-        }
-        return index;
-    }
-
-    protected static List<String> tabComplete(String token, String... iterable) {
-        return tabComplete(token, Arrays.asList(iterable));
-    }
-
-    protected static List<String> tabComplete(String token, Iterable<String> iterable) {
-        return StringUtil.copyPartialMatches(token, iterable, new ArrayList<>());
-    }
-
-    @Nullable
-    protected List<String> onTabComplete(CommandSource source, String[] args) {
-        return EMPTY_TAB_COMPLETE;
+    protected void addSubCommand(String name, int argsLength, boolean allowConsole, BiConsumer<User, String[]> command) {
+        subCommands.put(name, new SubCommand(argsLength, allowConsole) {
+            @Override
+            public CommandResult execute(CommandSource source, String[] args) {
+                command.accept(source.getUser(), args);
+                return CommandResult.SUCCESS;
+            }
+        });
     }
 
     private List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
-        return onTabComplete(new CommandSource(sender, plugin), args);
+        return null;
     }
 
     protected abstract CommandResult execute(CommandSource source, String[] args);

@@ -1,5 +1,6 @@
 package me.fourteendoggo.MagmaBuildNetworkReloaded.utils;
 
+import me.fourteendoggo.MagmaBuildNetworkReloaded.user.User;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permissible;
 
@@ -18,6 +19,10 @@ public enum Permission {
 
     public boolean has(Permissible permissible) {
         return permissible.hasPermission(permission);
+    }
+
+    public boolean has(User user) {
+        return has(user.getPlayer());
     }
 
     public boolean hasOr(Player player, String permission) {

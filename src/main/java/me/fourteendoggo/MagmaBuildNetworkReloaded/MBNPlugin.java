@@ -8,13 +8,10 @@ import me.fourteendoggo.MagmaBuildNetworkReloaded.listeners.PlayerListener;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.*;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.storage.impl.SqlStorage;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Lang;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Settings;
-import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class MBNPlugin extends JavaPlugin {
     private DelegatingStorage storage;
-    private final Settings settings = new Settings();
     private final RemoteDataCache remoteDataCache = new RemoteDataCache();
 
     @Override
@@ -29,30 +26,27 @@ public class MBNPlugin extends JavaPlugin {
         storage = new DelegatingStorage(impl, getLogger());
         storage.initialize();
         remoteDataCache.startSaveTask(this);
+        getLogger().info("Started cache runnable");
         getLogger().info("Using " + type.getDescription() + " for storage");
         new HomeCommand(this).register("home", true);
         new VanishCommand(this).register("vanish", true);
         new PlaytimeCommand(this).register("playtime", false);
         new UserinfoCommand(this).register("userinfo", true);
-        Bukkit.getPluginManager().registerEvents(new PlayerListener(this), this);
+        getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
         getLogger().info("Finished initialisation");
     }
 
     @Override
     public void onDisable() {
         storage.close();
-        Bukkit.getScheduler().cancelTasks(this); // explicit call
+        getServer().getScheduler().cancelTasks(this); // explicit call
     }
 
     public DelegatingStorage getStorage() {
         return storage;
     }
 
-    public Settings getSettings() {
-        return settings;
-    }
-
-    public RemoteDataCache getData() {
+    public RemoteDataCache getCache() {
         return remoteDataCache;
     }
 }

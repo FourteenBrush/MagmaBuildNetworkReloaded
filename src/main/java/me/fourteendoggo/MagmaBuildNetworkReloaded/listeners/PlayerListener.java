@@ -17,11 +17,11 @@ import java.util.concurrent.TimeUnit;
 
 public class PlayerListener implements Listener {
     private final MBNPlugin plugin;
-    private final Cache<UUID, Object> chatCache =
-            CacheBuilder.newBuilder().expireAfterWrite(800, TimeUnit.MILLISECONDS).build();
+    private final Cache<UUID, Object> chatCache;
 
     public PlayerListener(MBNPlugin plugin) {
         this.plugin = plugin;
+        chatCache = CacheBuilder.newBuilder().expireAfterWrite(800, TimeUnit.MILLISECONDS).build();
     }
 
     @EventHandler
@@ -41,7 +41,7 @@ public class PlayerListener implements Listener {
 
     private void handleFirstJoin(User user) {
         plugin.getLogger().info("User " + user.getPlayer().getName() + " joined for the first time, creating their data...");
-        UserSnapshot snapshot = UserSnapshot.createNewFor(user.getId());
+        UserSnapshot snapshot = UserSnapshot.createNew(user.getId());
         plugin.getStorage().createUser(snapshot).whenComplete((v, t) -> handleJoin(user, snapshot, t));
     }
 
@@ -50,24 +50,26 @@ public class PlayerListener implements Listener {
             user.getPlayer().kickPlayer(Lang.ERROR_FAILED_TO_LOAD_DATA.get());
         } else {
             user.setSnapshot(snapshot);
+            plugin.getCache().cacheUser(user);
             user.onDataLoadComplete(plugin);
-            plugin.getData().cacheUser(user);
         }
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        User user = plugin.getData().removeUser(event.getPlayer().getUniqueId());
+        User user = plugin.getCache().removeUser(event.getPlayer().getUniqueId());
         user.logout();
-        plugin.getStorage().saveUser(user.getData()).whenComplete((v, t) ->
-                plugin.getLogger().info("Saved user " + user.getPlayer().getName()));
+        plugin.getStorage().saveUser(user.getData()).thenRun(() -> plugin.getLogger().info("Saved quit user " + user.getPlayer().getName()));
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onChat(AsyncPlayerChatEvent event) {
-        User user = plugin.getData().getUser(event.getPlayer());
+        User user = plugin.getCache().getUser(event.getPlayer());
         if (!user.getData().getChatProfile().mayChat() || chatCache.getIfPresent(user.getId()) != null) {
             event.setCancelled(true);
+            Lang.CHAT_COOLDOWN.sendTo(user);
+        } else {
+            chatCache.put(event.getPlayer().getUniqueId(), false);
         }
     }
 }

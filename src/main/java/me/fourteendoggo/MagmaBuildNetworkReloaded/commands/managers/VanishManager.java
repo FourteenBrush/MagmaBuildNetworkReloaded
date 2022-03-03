@@ -1,4 +1,4 @@
-package me.fourteendoggo.MagmaBuildNetworkReloaded.commands.handlers;
+package me.fourteendoggo.MagmaBuildNetworkReloaded.commands.managers;
 
 import me.fourteendoggo.MagmaBuildNetworkReloaded.MBNPlugin;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Lang;
@@ -192,9 +192,9 @@ public class VanishManager {
             Player player = event.getPlayer();
             byte status = event.getPlayer().getPersistentDataContainer().getOrDefault(namespacedKey, PersistentDataType.BYTE, (byte)0);
             if (status == 1 || status == 2) {
-                event.setJoinMessage(null);
                 vanish(player, false);
                 sendMessageForStaffExclude(Lang.JOINED_VANISHED.get(player.getName()), player);
+                event.setJoinMessage(null);
             } else {
                 event.setJoinMessage(Lang.JOIN_MESSAGE.get(player.getName()));
             }
@@ -205,6 +205,7 @@ public class VanishManager {
             Player player = event.getPlayer();
             if (vanished.remove(player.getUniqueId())) {
                 sendMessageForStaffExclude(Lang.LEFT_VANISHED.get(player.getName()), player);
+                event.setQuitMessage(null);
             } else {
                 event.setQuitMessage(Lang.LEAVE_MESSAGE.get(event.getPlayer().getName()));
             }
@@ -212,8 +213,9 @@ public class VanishManager {
 
         @EventHandler
         public void onGameModeChange(PlayerGameModeChangeEvent event) {
-            if (event.getNewGameMode() != GameMode.SURVIVAL && event.getNewGameMode() != GameMode.ADVENTURE) return;
-            allowFlight(event.getPlayer());
+            if (event.getNewGameMode() == GameMode.SURVIVAL || event.getNewGameMode() == GameMode.ADVENTURE) {
+                allowFlight(event.getPlayer());
+            }
         }
 
         @EventHandler
