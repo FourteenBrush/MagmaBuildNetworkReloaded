@@ -1,6 +1,6 @@
 package me.fourteendoggo.MagmaBuildNetworkReloaded;
 
-import me.fourteendoggo.MagmaBuildNetworkReloaded.commands.HomeCommand;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.commands.NewHomeCommand;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.commands.PlaytimeCommand;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.commands.UserinfoCommand;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.commands.VanishCommand;
@@ -28,7 +28,7 @@ public class MBNPlugin extends JavaPlugin {
         remoteDataCache.startSaveTask(this);
         getLogger().info("Started cache runnable");
         getLogger().info("Using " + type.getDescription() + " for storage");
-        new HomeCommand(this).register("home", true);
+        new NewHomeCommand(this).register("home", true);
         new VanishCommand(this).register("vanish", true);
         new PlaytimeCommand(this).register("playtime", false);
         new UserinfoCommand(this).register("userinfo", true);

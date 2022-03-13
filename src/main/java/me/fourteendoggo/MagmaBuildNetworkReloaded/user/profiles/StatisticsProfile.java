@@ -3,29 +3,22 @@ package me.fourteendoggo.MagmaBuildNetworkReloaded.user.profiles;
 import org.apache.commons.lang.Validate;
 
 import java.util.Objects;
-import java.util.UUID;
 
 public class StatisticsProfile {
-    private final UUID id;
     private int minutesPlayed;
     private int level;
     private long lastUpdate;
     private final long firstJoin;
 
-    public StatisticsProfile(UUID uuid) {
-        this(uuid, 0, 0, System.currentTimeMillis());
+    public StatisticsProfile() {
+        this(0, 0, System.currentTimeMillis());
     }
 
-    public StatisticsProfile(UUID id, int playTime, int level, long firstJoin) {
-        this.id = id;
+    public StatisticsProfile(int playTime, int level, long firstJoin) {
         this.minutesPlayed = playTime;
         this.level = level;
         this.firstJoin = firstJoin;
         lastUpdate = System.currentTimeMillis();
-    }
-
-    public UUID getId() {
-        return id;
     }
 
     public int getMinutesPlayed() {
@@ -63,11 +56,11 @@ public class StatisticsProfile {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         StatisticsProfile that = (StatisticsProfile) o;
-        return minutesPlayed == that.minutesPlayed && level == that.level && lastUpdate == that.lastUpdate && firstJoin == that.firstJoin && id.equals(that.id);
+        return minutesPlayed == that.minutesPlayed && level == that.level && lastUpdate == that.lastUpdate && firstJoin == that.firstJoin;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, minutesPlayed, level, lastUpdate, firstJoin);
+        return Objects.hash(minutesPlayed, level, lastUpdate, firstJoin);
     }
 }

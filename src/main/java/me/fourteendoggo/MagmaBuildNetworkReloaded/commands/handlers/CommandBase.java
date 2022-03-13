@@ -1,6 +1,7 @@
 package me.fourteendoggo.MagmaBuildNetworkReloaded.commands.handlers;
 
 import me.fourteendoggo.MagmaBuildNetworkReloaded.MBNPlugin;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.user.User;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Lang;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Permission;
 import net.md_5.bungee.api.ChatColor;
@@ -38,7 +39,7 @@ public abstract class CommandBase implements CommandExecutor {
             Lang.NO_PERMISSION.sendTo(sender);
             return true;
         }
-        CommandResult result = CommandResult.FAILED;
+        CommandResult result = CommandResult.INTERNAL_ERROR;
         try {
             result = execute(new CommandSource(sender, plugin), args);
         } catch (Exception e) {
@@ -46,7 +47,7 @@ public abstract class CommandBase implements CommandExecutor {
             plugin.getLogger().log(Level.SEVERE, "An error occurred whilst executing command '" + cmd.getName() + "':", e);
         }
         switch (result) {
-            case FAILED -> sender.sendMessage(ChatColor.RED + "Something went wrong!");
+            case INTERNAL_ERROR -> sender.sendMessage(ChatColor.RED + "Something went wrong!");
             case NO_PERMISSION -> Lang.NO_PERMISSION.sendTo(sender);
             case PLAYER_ONLY -> Lang.NO_CONSOLE.sendTo(sender);
             case TARGET_NOT_FOUND -> Lang.PLAYER_NOT_FOUND.sendTo(sender);
@@ -64,6 +65,14 @@ public abstract class CommandBase implements CommandExecutor {
         }
     }
 
+    protected static boolean handleException(Throwable throwable, User user, Lang errorMessage) {
+        if (throwable != null) {
+            errorMessage.sendTo(user);
+            return true;
+        }
+        return false;
+    }
+
     protected static List<String> tabComplete(String token, String previous, String[] shouldMatch, Collection<String> iterable) {
         if (getIndex(previous, shouldMatch) >= shouldMatch.length) return EMPTY_TAB_COMPLETE;
         return tabComplete(token, iterable);
@@ -74,13 +83,11 @@ public abstract class CommandBase implements CommandExecutor {
         return iterable.length != 0 ? tabComplete(token, iterable) : null;
     }
 
-    private static int getIndex(String previous, String[] shouldMatch) {
-        int index = 1;
-        String str = shouldMatch[0];
-        while (!(previous.equals(str))) {
-            str = shouldMatch[index++];
+    private static int getIndex(String find, String[] possibleMatches) {
+        for (int i = 0; i < possibleMatches.length; i++) {
+            if (find.equals(possibleMatches[i])) return i;
         }
-        return index;
+        return possibleMatches.length + 100; // idk just something that is bigger than the length
     }
 
     protected static List<String> tabComplete(String token, String... iterable) {

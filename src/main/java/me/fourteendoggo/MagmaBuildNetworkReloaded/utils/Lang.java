@@ -57,16 +57,16 @@ public enum Lang {
     /* command help messages - cannot be overridden */
 
     HOME_COMMAND_HELP("command-help.home", """
-            &e------------ &7[&eHome Command&7] &e------------
-            &7Below is a list of all home subcommands:
+            &e------------ &7[&eHome Command&7] &e------------&7
+              Below is a list of all home subcommands:
               &6/home create <name> &7- &6Creates a new home
               /home remove <name> &7- &6Removes the home with that name
               /home list &7- &6Shows a list of all your homes
               /home teleport <name> &7- &6Teleports you to the home with that name
               /home help &7- &6Shows this message"""),
     VANISH_COMMAND_HELP("command.help.vanish", """
-            &e------------ &7[&eVanish Command&7] &e------------
-            &7Below is a list of all vanish subcommands:
+            &e------------ &7[&eVanish Command&7] &e------------&7
+              Below is a list of all vanish subcommands:
               &6/vanish <player> &7- &6Vanishes the mentioned player
               /vanish enable [player] &7- &6Vanishes the mentioned player, or yourself
               /vanish disable [player] &7- &6Un-vanishes the mentioned player, or yourself
@@ -74,8 +74,8 @@ public enum Lang {
               /vanish fakequit &7- &6Sends the server a fake leave message and vanishes you
               /vanish fakejoin &7- &6Sends the server a fake join message and un-vanishes you"""),
     PLAYTIME_COMMAND_HELP("command.help.playtime", """
-            &e------------ &7[&ePlaytime Command&7] &e------------
-            &7Below is a list of all playtime subcommands:
+            &e------------ &7[&ePlaytime Command&7] &e------------&7
+              Below is a list of all playtime subcommands:
               &6/playtime <player> &7- &6Shows the playtime for the mentioned player, or yourself""");
 
     private final String path;

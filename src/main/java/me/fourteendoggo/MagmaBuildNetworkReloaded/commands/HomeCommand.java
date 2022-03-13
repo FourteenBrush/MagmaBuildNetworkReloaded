@@ -9,13 +9,10 @@ import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Lang;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Permission;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Utils;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.records.Home;
-import net.md_5.bungee.api.ChatColor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.logging.Level;
 
 public class HomeCommand extends CommandBase {
     private static final int DEFAULT_HOMES_LIMIT = 2;
@@ -28,16 +25,15 @@ public class HomeCommand extends CommandBase {
     @Override
     protected CommandResult execute(CommandSource source, String[] args) {
         if (source.getPlayer() == null) return CommandResult.PLAYER_ONLY;
-        User user = plugin.getCache().getUser(source.getPlayer().getUniqueId());
         if (args.length == 2) {
             switch (args[0]) {
-                case "create" -> createHome(args[1], user);
-                case "remove", "delete" -> deleteHome(args[1], user);
-                case "teleport", "tp" -> teleportToHome(args[1], user);
+                case "create" -> createHome(args[1], source.getUser());
+                case "remove", "delete" -> deleteHome(args[1], source.getUser());
+                case "teleport", "tp" -> teleportToHome(args[1], source.getUser());
                 default -> { return CommandResult.SHOW_USAGE; }
             }
         } else if (args.length == 1 && args[0].equals("list")) {
-            sendAllHomes(user);
+            sendAllHomes(source.getUser());
         } else {
             return CommandResult.SHOW_USAGE;
         }
@@ -53,9 +49,10 @@ public class HomeCommand extends CommandBase {
         } else {
             Home home = new Home(name, user.getId(), user.getPlayer().getLocation());
             user.getData().addHome(home);
-            plugin.getStorage().createHome(home).whenComplete((v, t) ->
-                    Lang.HOME_CREATED_NEW.sendTo(user, name))
-                    .exceptionally(handleException(user, Lang.ERROR_CREATING_HOME));
+            plugin.getStorage().createHome(home).whenComplete((v, t) -> {
+                if (handleException(t, user, Lang.ERROR_CREATING_HOME)) return;
+                Lang.HOME_CREATED_NEW.sendTo(user, name);
+            });
         }
     }
 
@@ -63,20 +60,13 @@ public class HomeCommand extends CommandBase {
         Home home = user.getData().getHome(name);
         if (home != null) {
             user.getData().removeHome(home);
-            plugin.getStorage().deleteHome(home).whenComplete((v, t) ->
-                    Lang.HOME_DELETED.sendTo(user, name))
-                    .exceptionally(handleException(user, Lang.ERROR_DELETING_HOME));
+            plugin.getStorage().deleteHome(home).whenComplete((v, t) -> {
+                if (handleException(t, user, Lang.ERROR_DELETING_HOME)) return;
+                Lang.HOME_DELETED.sendTo(user, name);
+            });
         } else {
             Lang.HOME_NAME_NOT_FOUND.sendTo(user);
         }
-    }
-
-    private Function<Throwable, Void> handleException(User user, Lang lang) {
-        return t -> {
-            lang.sendTo(user);
-            plugin.getLogger().log(Level.SEVERE, ChatColor.stripColor(lang.get()), t);
-            return null;
-        };
     }
 
     private void teleportToHome(String name, User user) {
@@ -92,7 +82,7 @@ public class HomeCommand extends CommandBase {
     private void sendAllHomes(User user) {
         Set<Home> homes = user.getData().getHomes();
         if (homes.isEmpty()) {
-            Lang.HOME_NAME_NOT_FOUND.sendTo(user);
+            Lang.HOMES_NO_HOMES_SET.sendTo(user);
         } else {
             StringBuilder builder = new StringBuilder();
             builder.append("&e------------ &7[&eHomes&7] &e------------\n")

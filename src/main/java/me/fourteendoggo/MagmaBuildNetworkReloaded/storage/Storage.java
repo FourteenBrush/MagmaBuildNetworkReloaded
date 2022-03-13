@@ -5,40 +5,38 @@ import me.fourteendoggo.MagmaBuildNetworkReloaded.kingdom.Kingdom;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.user.UserSnapshot;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.records.Home;
 
-import java.util.Collection;
+import java.sql.SQLException;
 import java.util.UUID;
 
 public interface Storage {
 
-    void initialize();
+    void initialize() throws SQLException;
 
     void close();
 
     StorageType getStorageType();
 
-    UserSnapshot loadUser(UUID id);
+    UserSnapshot loadUser(UUID id) throws SQLException;
 
-    void saveUser(UserSnapshot snapshot);
+    void saveUser(UserSnapshot snapshot) throws SQLException;
 
-    void createUser(UserSnapshot snapshot);
+    void createUser(UserSnapshot snapshot) throws SQLException;
 
-    ChatChannel loadChannel(String name);
+    ChatChannel loadChannel(String name) throws SQLException;
 
-    void saveChannel(ChatChannel channel);
+    void saveChannel(ChatChannel channel) throws SQLException;
 
-    void createChannel(ChatChannel channel);
+    void createChannel(ChatChannel channel) throws SQLException;
 
-    void deleteChannel(String name);
+    void deleteChannel(String name) throws SQLException;
 
-    Collection<Home> loadHomes(UUID owner);
+    void createHome(Home home) throws SQLException;
 
-    void createHome(Home home);
+    void deleteHome(Home home) throws SQLException;
 
-    void deleteHome(Home home);
+    Kingdom loadKingdom(String name) throws SQLException;
 
-    Kingdom loadKingdom(String name);
+    void saveKingdom(Kingdom kingdom) throws SQLException;
 
-    void saveKingdom(Kingdom kingdom);
-
-    void createKingdom(Kingdom kingdom);
+    void createKingdom(Kingdom kingdom) throws SQLException;
 }

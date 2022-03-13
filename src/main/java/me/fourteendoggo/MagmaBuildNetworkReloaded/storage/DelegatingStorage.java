@@ -3,30 +3,32 @@ package me.fourteendoggo.MagmaBuildNetworkReloaded.storage;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.chat.ChatChannel;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.kingdom.Kingdom;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.user.UserSnapshot;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.ThrowingRunnable;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.ThrowingSupplier;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.records.Home;
 
-import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class DelegatingStorage {
     private final Logger logger;
     private final Storage storage;
-    private final Executor executor = new ForkJoinPool(
-            Runtime.getRuntime().availableProcessors() * 2,
-            ForkJoinPool.defaultForkJoinWorkerThreadFactory,
-            (t, e) -> e.printStackTrace(),
-            false
-    );
+    private final Executor executor;
 
     public DelegatingStorage(Storage storage, Logger logger) {
         this.storage = storage;
         this.logger = logger;
+        executor = new ForkJoinPool(
+                Runtime.getRuntime().availableProcessors() * 2,
+                ForkJoinPool.defaultForkJoinWorkerThreadFactory,
+                (t, e) -> e.printStackTrace(),
+                false
+        );
     }
 
     public void initialize() {
@@ -55,11 +57,11 @@ public class DelegatingStorage {
     }
 
     public CompletableFuture<Void> saveUser(UserSnapshot snapshot) {
-        return makeFuture(() -> storage.saveUser(snapshot), "Failed to save user " + snapshot.getStatisticsProfile().getId());
+        return makeFuture(() -> storage.saveUser(snapshot), "Failed to save user " + snapshot.getId());
     }
 
     public CompletableFuture<Void> createUser(UserSnapshot snapshot) {
-        return makeFuture(() -> storage.createUser(snapshot), "Failed to create user " + snapshot.getStatisticsProfile().getId());
+        return makeFuture(() -> storage.createUser(snapshot), "Failed to create user " + snapshot.getId());
     }
 
     public CompletableFuture<ChatChannel> loadChannel(String name) {
@@ -76,10 +78,6 @@ public class DelegatingStorage {
 
     public CompletableFuture<Void> deleteChannel(String name) {
         return makeFuture(() -> storage.deleteChannel(name), "Failed to delete chatchannel " + name);
-    }
-
-    public CompletableFuture<Collection<Home>> loadHomes(UUID owner) {
-        return makeFuture(() -> storage.loadHomes(owner), "Failed to load homes for user " + owner);
     }
 
     public CompletableFuture<Void> createHome(Home home) {
@@ -102,28 +100,29 @@ public class DelegatingStorage {
         return makeFuture(() -> storage.createKingdom(kingdom), "Failed to create kingdom " + kingdom.getName());
     }
 
-    private void handleException(Exception e, String errorMessage) {
-        logger.log(Level.SEVERE, errorMessage.concat(" Storage implementation is " + getStorageType().getDescription()), e);
-    }
-
-    private CompletableFuture<Void> makeFuture(Runnable runnable, String errorMessage) {
+    private CompletableFuture<Void> makeFuture(ThrowingRunnable runnable, String errorMessage) {
         return CompletableFuture.runAsync(() -> {
             try {
                 runnable.run();
             } catch (Exception e) {
                 handleException(e, errorMessage);
+                throw new CompletionException(e);
             }
         }, executor);
     }
 
-    private <T> CompletableFuture<T> makeFuture(Supplier<T> supplier, String errorMessage) {
+    private <T> CompletableFuture<T> makeFuture(ThrowingSupplier<T> supplier, String errorMessage) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 return supplier.get();
             } catch (Exception e) {
                 handleException(e, errorMessage);
-                return null;
+                throw new CompletionException(e); // exception held internally in the future, handled with #whenComplete
             }
         }, executor);
+    }
+
+    private void handleException(Exception e, String errorMessage) {
+        logger.log(Level.SEVERE, errorMessage + " Storage implementation is " + getStorageType().getDescription(), e);
     }
 }

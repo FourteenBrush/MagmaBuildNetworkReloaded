@@ -36,22 +36,26 @@ public class PlayerListener implements Listener {
 
     private void handleNormalJoin(User user) {
         plugin.getLogger().info("Loading data for user " + user.getPlayer().getName());
-        plugin.getStorage().loadUser(user.getId()).whenComplete((s, t) -> handleJoin(user, s, t));
+        plugin.getStorage().loadUser(user.getId()).whenComplete((s, t) ->
+                handleJoin(user, s, t, "Loaded user " + user.getPlayer().getName()));
     }
 
     private void handleFirstJoin(User user) {
         plugin.getLogger().info("User " + user.getPlayer().getName() + " joined for the first time, creating their data...");
         UserSnapshot snapshot = UserSnapshot.createNew(user.getId());
-        plugin.getStorage().createUser(snapshot).whenComplete((v, t) -> handleJoin(user, snapshot, t));
+        plugin.getStorage().createUser(snapshot).whenComplete((v, t) ->
+                handleJoin(user, snapshot, t, "Created user " + user.getPlayer().getName()));
     }
 
-    private void handleJoin(User user, UserSnapshot snapshot, Throwable throwable) {
+    private void handleJoin(User user, UserSnapshot snapshot, Throwable throwable, String logOnSuccess) {
         if (throwable != null) {
             user.getPlayer().kickPlayer(Lang.ERROR_FAILED_TO_LOAD_DATA.get());
+            plugin.getLogger().warning("Failed to load create or load user " + user.getPlayer().getName() + ", storage implementation is " + plugin.getStorage().getStorageType().getDescription());
+            throwable.printStackTrace();
         } else {
-            user.setSnapshot(snapshot);
             plugin.getCache().cacheUser(user);
-            user.onDataLoadComplete(plugin);
+            user.onDataLoadComplete(plugin, snapshot);
+            plugin.getLogger().info(logOnSuccess);
         }
     }
 

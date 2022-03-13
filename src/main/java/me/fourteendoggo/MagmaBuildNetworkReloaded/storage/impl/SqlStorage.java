@@ -45,15 +45,13 @@ public class SqlStorage implements Storage {
     }
 
     @Override
-    public void initialize() {
+    public void initialize() throws SQLException {
         try (Connection conn = connectionFactory.getConnection()) {
             for (String query : TABLE_SETUP) {
                 try (PreparedStatement ps = conn.prepareStatement(query)) {
                     ps.execute();
                 }
             }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -69,29 +67,34 @@ public class SqlStorage implements Storage {
 
     @Nullable
     @Override
-    public UserSnapshot loadUser(UUID id) {
+    public UserSnapshot loadUser(UUID id) throws SQLException {
         try (Connection conn = connectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(LOAD_USER)) {
+             PreparedStatement ps = conn.prepareStatement(LOAD_USER);
+             PreparedStatement psHomes = conn.prepareStatement(LOAD_HOMES)) {
             ps.setString(1, id.toString());
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 int playtime = rs.getInt("playtime");
                 int level = rs.getInt("player_level");
                 long firstJoin = rs.getLong("first_join");
-                StatisticsProfile statisticsProfile = new StatisticsProfile(id, playtime, level, firstJoin);
+                StatisticsProfile statisticsProfile = new StatisticsProfile(playtime, level, firstJoin);
                 KingdomRank kingdomRank = KingdomRank.fromString(rs.getString("kingdom_rank"));
                 MembershipProfile membershipProfile = new MembershipProfile(new Kingdom("test", KingdomType.YEXORA, null), kingdomRank);
                 // TODO don't create random kingdom, get it from cache, fix constructor
-                return new UserSnapshot(new ChatProfile(id), statisticsProfile, membershipProfile, loadHomes(id));
+                psHomes.setString(1, id.toString());
+                rs = psHomes.executeQuery();
+                Set<Home> homes = new HashSet<>();
+                while (rs.next()) {
+                    homes.add(constructHome(rs));
+                }
+                return new UserSnapshot(id, new ChatProfile(), statisticsProfile, membershipProfile, homes);
             }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
         return null;
     }
 
     @Override
-    public void saveUser(UserSnapshot snapshot) {
+    public void saveUser(UserSnapshot snapshot) throws SQLException {
         try (Connection conn = connectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(SAVE_USER)) {
             ps.setInt(1, snapshot.getStatisticsProfile().getMinutesPlayed());
@@ -99,18 +102,16 @@ public class SqlStorage implements Storage {
             ps.setLong(3, System.currentTimeMillis()); // TODO check nullability
             ps.setString(4, snapshot.getMembershipProfile().getKingdom().getName());
             ps.setString(5, snapshot.getMembershipProfile().getKingdomRank().name());
-            ps.setString(6, snapshot.getStatisticsProfile().getId().toString());
+            ps.setString(6, snapshot.getId().toString());
             ps.execute();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 
     @Override
-    public void createUser(UserSnapshot snapshot) {
+    public void createUser(UserSnapshot snapshot) throws SQLException {
         try (Connection conn = connectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(CREATE_USER)) {
-            ps.setString(1, snapshot.getStatisticsProfile().getId().toString());
+            ps.setString(1, snapshot.getId().toString());
             ps.setInt(2, snapshot.getStatisticsProfile().getMinutesPlayed());
             ps.setInt(3, snapshot.getStatisticsProfile().getLevel());
             long now = System.currentTimeMillis();
@@ -119,46 +120,28 @@ public class SqlStorage implements Storage {
             ps.setString(6, snapshot.getMembershipProfile().getKingdom().getName());
             ps.setString(7, snapshot.getMembershipProfile().getKingdomRank().name());
             ps.execute();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 
     @Nullable
     @Override
-    public ChatChannel loadChannel(String name) {
+    public ChatChannel loadChannel(String name) throws SQLException {
         return null;
     }
 
     @Override
-    public void saveChannel(ChatChannel channel) {
+    public void saveChannel(ChatChannel channel) throws SQLException {
 
     }
 
     @Override
-    public void createChannel(ChatChannel channel) {
+    public void createChannel(ChatChannel channel) throws SQLException {
 
     }
 
     @Override
-    public void deleteChannel(String name) {
+    public void deleteChannel(String name) throws SQLException {
 
-    }
-
-    @Override
-    public Set<Home> loadHomes(UUID owner) {
-        Set<Home> homes = new HashSet<>();
-        try (Connection conn = connectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(LOAD_HOMES)) {
-            ps.setString(1, owner.toString());
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                homes.add(constructHome(rs));
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return homes;
     }
 
     private Home constructHome(ResultSet rs) throws SQLException {
@@ -175,7 +158,7 @@ public class SqlStorage implements Storage {
     }
 
     @Override
-    public void createHome(Home home) {
+    public void createHome(Home home) throws SQLException {
         try (Connection conn = connectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(CREATE_HOME)) {
             ps.setString(1, home.name());
@@ -187,36 +170,32 @@ public class SqlStorage implements Storage {
             ps.setFloat(7, home.location().getYaw());
             ps.setString(8, home.location().getWorld().getName()); // if world is null something is seriously wrong
             ps.execute();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 
     @Override
-    public void deleteHome(Home home) {
+    public void deleteHome(Home home) throws SQLException {
         try (Connection conn = connectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(DELETE_HOME)) {
             ps.setString(1, home.owner().toString());
             ps.setString(2, home.name());
             ps.execute();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 
     @Nullable
     @Override
-    public Kingdom loadKingdom(String name) {
+    public Kingdom loadKingdom(String name) throws SQLException {
         return null;
     }
 
     @Override
-    public void saveKingdom(Kingdom kingdom) {
+    public void saveKingdom(Kingdom kingdom) throws SQLException {
 
     }
 
     @Override
-    public void createKingdom(Kingdom kingdom) {
+    public void createKingdom(Kingdom kingdom) throws SQLException {
 
     }
 }

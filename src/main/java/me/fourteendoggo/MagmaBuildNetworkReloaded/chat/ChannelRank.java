@@ -26,7 +26,7 @@ public enum ChannelRank {
                 boolean canDelete,
                 boolean canPromovateToOwner,
                 boolean show) {
-        this(displayName, messageColor, new boolean[] { canTalk, canInvite, canSetPassword, canSetMotd, canSetRank, canKick, canBan, canUnban, canDelete, canPromovateToOwner, show });
+        this(displayName, messageColor, new boolean[]{canTalk, canInvite, canSetPassword, canSetMotd, canSetRank, canKick, canBan, canUnban, canDelete, canPromovateToOwner, show});
     }
 
     ChannelRank(String displayName, ChatColor messageColor, boolean[] flags) {

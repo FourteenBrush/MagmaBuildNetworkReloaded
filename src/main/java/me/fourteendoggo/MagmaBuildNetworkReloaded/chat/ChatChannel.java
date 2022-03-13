@@ -1,16 +1,14 @@
 package me.fourteendoggo.MagmaBuildNetworkReloaded.chat;
 
-import com.google.common.collect.ImmutableList;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.user.User;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Lang;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Utils;
-import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.UnmodifiableView;
 
 import java.util.*;
 
 public class ChatChannel {
-    private final String name; // identifier
+    private final String name;
     private final String displayName;
     private final String joinPermission;
     private String password = "";
@@ -20,8 +18,6 @@ public class ChatChannel {
     private final List<String> motd;
 
     public ChatChannel(String name, String displayName, String joinPermission, ChannelRank defaultRank) {
-        Validate.isTrue(name.length() < 30);
-        Validate.isTrue(displayName.length() < 30);
         this.name = name;
         this.displayName = Utils.colorize(displayName);
         this.joinPermission = joinPermission;
@@ -112,7 +108,7 @@ public class ChatChannel {
 
     @UnmodifiableView
     public List<String> getMotd() {
-        return ImmutableList.copyOf(motd);
+        return Collections.unmodifiableList(motd);
     }
 
     public void setMotdLine(int line, String str) {

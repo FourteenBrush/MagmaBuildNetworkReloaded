@@ -30,10 +30,10 @@ public class PlaytimeCommand extends CommandBase {
     protected CommandResult execute(CommandSource source, @NotNull String[] args) {
         if (args.length == 0) {
             if (source.getPlayer() == null) return CommandResult.PLAYER_ONLY;
-            User user = plugin.getCache().getUser(source.getPlayer());
+            User user = source.getUser();
             sendPlaytime(user, Lang.PLAYTIME);
         } else if (args.length == 1) {
-            Player target = Bukkit.getPlayer(args[0]);
+            Player target = Bukkit.getPlayerExact(args[0]);
             if (target == null) return CommandResult.TARGET_NOT_FOUND;
             User user = plugin.getCache().getUser(target);
             if (user == null) return CommandResult.TARGET_NOT_FOUND;
@@ -48,8 +48,7 @@ public class PlaytimeCommand extends CommandBase {
     }
 
     private void sendPlaytime(User user, Lang message) {
-        long firstJoin = user.getData().getStatisticsProfile().getFirstJoin();
-        Instant time = Instant.ofEpochMilli(firstJoin);
+        Instant time = Instant.ofEpochMilli(user.getData().getStatisticsProfile().getFirstJoin());
         LocalDateTime dateTime = LocalDateTime.ofInstant(time, ZoneOffset.UTC);
         message.sendTo(user, formatPlaytime(user.getPlayer()), dateTime.format(dateTimeFormatter));
     }

@@ -1,0 +1,20 @@
+name: MagmaBuildNetworkReloaded
+main: me.fourteendoggo.MagmaBuildNetworkReloaded.MBNPlugin
+version: 1.0
+author: FourteenDoggo
+description: Recoded the MagmaBuildNetwork plugin
+
+commands:
+  magmabuildnetworkreloaded:
+    description: main command
+    aliases: [mbn]
+  home:
+    description: Provides an easy way to work with homes
+  vanish:
+    description: Provides an easy way to vanish
+    aliases: [v]
+  playtime:
+    description: A command to show your or someone elses playtime
+    aliases: [onlinetime]
+  userinfo:
+    description: A command to display info about a certain user

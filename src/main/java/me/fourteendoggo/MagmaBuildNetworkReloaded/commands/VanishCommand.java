@@ -25,25 +25,25 @@ public class VanishCommand extends CommandBase {
     protected CommandResult execute(CommandSource source, String[] args) {
         if (args.length == 0) {
             if (source.getPlayer() == null) return CommandResult.PLAYER_ONLY;
-            vanishManager.toggleVanish(source.getPlayer(), true);
+            vanishManager.toggleVanish(source.getPlayer());
         } else if (args.length == 1) {
             switch (args[0]) {
                 case "list" -> vanishManager.sendVanishedPlayerListTo(source.sender());
                 case "enable" -> {
                     if (source.getPlayer() == null) return CommandResult.PLAYER_ONLY;
-                    vanishManager.vanish(source.getPlayer(), true);
+                    vanishManager.vanish(source.getPlayer(), true, false);
                 }
                 case "disable" -> {
                     if (source.getPlayer() == null) return CommandResult.PLAYER_ONLY;
-                    vanishManager.unVanish(source.getPlayer(), true);
+                    vanishManager.unVanish(source.getPlayer(), false);
                 }
                 case "fakequit" -> {
                     if (source.getPlayer() == null) return CommandResult.PLAYER_ONLY;
-                    vanishManager.doFakeQuit(source.getPlayer());
+                    vanishManager.vanish(source.getPlayer(), true, true);
                 }
                 case "fakejoin" -> {
                     if (source.getPlayer() == null) return CommandResult.PLAYER_ONLY;
-                    vanishManager.doFakeJoin(source.getPlayer());
+                    vanishManager.unVanish(source.getPlayer(), true);
                 }
                 default -> { return CommandResult.SHOW_USAGE; }
             }
@@ -53,27 +53,27 @@ public class VanishCommand extends CommandBase {
                     Player target = Bukkit.getPlayer(args[1]);
                     if (target == null) return CommandResult.TARGET_NOT_FOUND;
                     if (source.sender() instanceof Player executor && executor.equals(target)) {
-                        vanishManager.vanish(target, true);
+                        vanishManager.vanish(target, true, false);
                     } else {
-                        vanishManager.vanishOther(target, true, source.sender());
+                        vanishManager.vanishOther(target, source.sender());
                     }
                 }
                 case "disable" -> {
                     Player target = Bukkit.getPlayer(args[1]);
                     if (target == null) return CommandResult.TARGET_NOT_FOUND;
                     if (source.sender() instanceof Player executor && executor.equals(target)) {
-                        vanishManager.unVanish(target, true);
+                        vanishManager.unVanish(target, false);
                     } else {
-                        vanishManager.unVanishOther(target, true, source.sender());
+                        vanishManager.unVanishOther(target, source.sender());
                     }
                 }
                 case "toggle" -> {
                     Player target = Bukkit.getPlayer(args[1]);
                     if (target == null) return CommandResult.TARGET_NOT_FOUND;
                     if (source.sender() instanceof Player executor && executor.equals(target)) {
-                        vanishManager.toggleVanish(target, true);
+                        vanishManager.toggleVanish(target);
                     } else {
-                        vanishManager.toggleVanishFor(target, true, source.sender());
+                        vanishManager.toggleVanishFor(target, source.sender());
                     }
                 }
                 default -> { return CommandResult.SHOW_USAGE; }

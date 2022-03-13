@@ -4,6 +4,8 @@ import me.fourteendoggo.MagmaBuildNetworkReloaded.MBNPlugin;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -14,13 +16,10 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class InventoryGui implements Listener {
     private static final ItemStack FILLER = new ItemBuilder(Material.GRAY_STAINED_GLASS_PANE).setDisplayName(" ").build();
     private final Inventory inventory;
-    private final Map<Integer, InventoryButton> items;
+    private final Int2ObjectMap<InventoryButton> items;
     private final boolean returnItems;
 
     public InventoryGui(MBNPlugin plugin, String name, int rows) {
@@ -29,7 +28,7 @@ public class InventoryGui implements Listener {
 
     public InventoryGui(MBNPlugin plugin, String name, int rows, boolean returnItems) {
         inventory = Bukkit.createInventory(null, rows * 9, Utils.colorize(name));
-        items = new HashMap<>();
+        items = new Int2ObjectOpenHashMap<>();
         this.returnItems = returnItems;
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }

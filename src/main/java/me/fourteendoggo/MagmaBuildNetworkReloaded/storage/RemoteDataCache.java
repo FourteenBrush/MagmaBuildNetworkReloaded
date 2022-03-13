@@ -57,9 +57,9 @@ public class RemoteDataCache {
     }
 
     private void scheduleSave(MBNPlugin plugin) {
-        users.values().forEach(user -> plugin.getStorage().saveUser(user.getData()).whenComplete((v, t) ->
+        users.values().forEach(user -> plugin.getStorage().saveUser(user.getData()).thenRun(() ->
                 plugin.getLogger().info("Saved data for user " + user.getPlayer().getName())));
-        kingdoms.values().forEach(kingdom -> plugin.getStorage().saveKingdom(kingdom).whenComplete((k, t) ->
+        kingdoms.values().forEach(kingdom -> plugin.getStorage().saveKingdom(kingdom).thenRun(() ->
                 plugin.getLogger().info("Saved kingdom " + kingdom.getName())));
     }
 }

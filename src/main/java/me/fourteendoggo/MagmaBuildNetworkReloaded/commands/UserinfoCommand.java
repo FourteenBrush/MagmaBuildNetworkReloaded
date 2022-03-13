@@ -11,7 +11,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.permissions.Permissible;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -26,13 +25,14 @@ public class UserinfoCommand extends CommandBase {
     @Override
     protected CommandResult execute(CommandSource source, String[] args) {
         if (args.length > 0) {
-            Player target = Bukkit.getPlayer(args[0]);
+            Player target = Bukkit.getPlayerExact(args[0]);
             if (target != null) {
                 handleResult(plugin.getCache().getUser(target).getData(), target, source.sender());
             } else {
                 CommandResult[] result = new CommandResult[1];
                 OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(args[0]);
-                plugin.getStorage().loadUser(offlinePlayer.getUniqueId()).whenComplete((s, t) -> {
+                if (!offlinePlayer.hasPlayedBefore()) return CommandResult.TARGET_NOT_FOUND;
+                plugin.getStorage().loadUser(offlinePlayer.getUniqueId()).thenAccept(s -> {
                     if (s != null) {
                         handleResult(s, null, source.sender());
                     } else {
@@ -45,11 +45,16 @@ public class UserinfoCommand extends CommandBase {
         return CommandResult.SUCCESS;
     }
 
-    private void handleResult(UserSnapshot snapshot, @Nullable Permissible viewStatsFor, CommandSender sendTo) {
+    private void handleResult(UserSnapshot snapshot, @Nullable Player viewStatsFor, CommandSender sendTo) {
         StringBuilder builder = new StringBuilder();
-        String homesLimit = viewStatsFor != null ? String.valueOf(plugin.getSettings().getHomesLimitFor(viewStatsFor)) : "?";
+        String homesLimit;
+        if (viewStatsFor == null) {
+            homesLimit = "?";
+        } else {
+            homesLimit = String.valueOf(Permission.MODERATOR.has(viewStatsFor) ? NewHomeCommand.MODERATOR_HOMES_LIMIT : NewHomeCommand.DEFAULT_HOMES_LIMIT);
+        }
         String output = builder.append("&e------------ &7[&eUser Info&7] &e------------\n")
-                .append("&6UUID: &7").append(snapshot.getStatisticsProfile().getId())
+                .append("&6UUID: &7").append(snapshot.getId())
                 .append("\n&6Playtime: &7").append(snapshot.getStatisticsProfile().getMinutesPlayed())
                 .append("\n&6Homes: &7").append("[").append(snapshot.getHomesAmount()).append("/")
                     .append(homesLimit).append("]")

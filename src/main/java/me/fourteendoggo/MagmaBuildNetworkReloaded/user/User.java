@@ -1,6 +1,7 @@
 package me.fourteendoggo.MagmaBuildNetworkReloaded.user;
 
 import me.fourteendoggo.MagmaBuildNetworkReloaded.MBNPlugin;
+import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Permission;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Utils;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -32,10 +33,6 @@ public class User {
         return id;
     }
 
-    public void setSnapshot(UserSnapshot userSnapshot) {
-        snapshot.set(userSnapshot);
-    }
-
     public UserSnapshot getData() {
         return snapshot.get();
     }
@@ -44,8 +41,13 @@ public class User {
         return player.get();
     }
 
-    public void onDataLoadComplete(MBNPlugin plugin) {
+    public boolean isStaff() {
+        return Permission.MODERATOR.has(this);
+    }
+
+    public void onDataLoadComplete(MBNPlugin plugin, UserSnapshot loadedSnapshot) {
         actionbar.runTaskTimerAsynchronously(plugin, 1L, 8L);
+        snapshot.set(loadedSnapshot);
         Team team = getPlayer().getScoreboard().getTeam("mbn");
         if (team == null) {
             team = getPlayer().getScoreboard().registerNewTeam("mbn");
@@ -64,20 +66,24 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return id.equals(user.id) && player.equals(user.player) && snapshot.equals(user.snapshot);
+        return id.equals(user.id) && player.equals(user.player);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, player, snapshot);
+        return Objects.hash(id, player);
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "name=" + getPlayer().getName() +
+                "online=" + getPlayer().isOnline() +
+                '}';
     }
 
     private class Actionbar extends BukkitRunnable {
-        private final DecimalFormat df;
-
-        public Actionbar() {
-            df = new DecimalFormat("#.#");
-        }
+        private final DecimalFormat df = new DecimalFormat("#.#");
 
         @Override
         public void run() {

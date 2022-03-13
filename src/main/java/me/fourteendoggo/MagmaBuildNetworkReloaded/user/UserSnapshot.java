@@ -1,6 +1,5 @@
 package me.fourteendoggo.MagmaBuildNetworkReloaded.user;
 
-import com.google.common.collect.ImmutableSet;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.kingdom.Kingdom;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.kingdom.KingdomRank;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.kingdom.KingdomType;
@@ -10,18 +9,19 @@ import me.fourteendoggo.MagmaBuildNetworkReloaded.user.profiles.StatisticsProfil
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.records.Home;
 import org.jetbrains.annotations.UnmodifiableView;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class UserSnapshot {
+    private final UUID id;
     private final ChatProfile chatProfile;
     private final StatisticsProfile statisticsProfile;
     private final MembershipProfile membershipProfile;
+    private final Map<CooldownType, Cooldown> cooldowns = new HashMap<>(); // TODO
     private final Set<Home> homes;
 
-    public UserSnapshot(ChatProfile chatProfile, StatisticsProfile statisticsProfile, MembershipProfile membershipProfile, Set<Home> homes) {
+    public UserSnapshot(UUID id, ChatProfile chatProfile, StatisticsProfile statisticsProfile, MembershipProfile membershipProfile, Set<Home> homes) {
+        this.id = id;
         this.chatProfile = chatProfile;
         this.statisticsProfile = statisticsProfile;
         this.membershipProfile = membershipProfile;
@@ -30,10 +30,15 @@ public class UserSnapshot {
 
     public static UserSnapshot createNew(UUID id) {
         return new UserSnapshot(
-                new ChatProfile(id),
-                new StatisticsProfile(id),
+                id,
+                new ChatProfile(),
+                new StatisticsProfile(),
                 new MembershipProfile(new Kingdom("test", KingdomType.GRAUDOR, null), KingdomRank.INHABITANT),
                 new HashSet<>());
+    }
+
+    public UUID getId() {
+        return id;
     }
 
     public ChatProfile getChatProfile() {
@@ -48,9 +53,21 @@ public class UserSnapshot {
         return membershipProfile;
     }
 
+    public Cooldown getCooldown(CooldownType type) {
+        return cooldowns.get(type);
+    }
+
+    public void addCooldown(CooldownType type, Cooldown cooldown) {
+        cooldowns.put(type, cooldown);
+    }
+
+    public void removeCooldown(CooldownType type) {
+        cooldowns.remove(type);
+    }
+
     @UnmodifiableView
     public Set<Home> getHomes() {
-        return ImmutableSet.copyOf(homes);
+        return Collections.unmodifiableSet(homes);
     }
 
     public Home getHome(String name) {

@@ -30,7 +30,7 @@ public class ConnectionFactory {
         } // TODO add support for other databases
         dataSource.setJdbcUrl(jdbcUrl);
         dataSource.setMaximumPoolSize(10);
-        dataSource.setPoolName("mbn - hikari pool");
+        dataSource.setPoolName("[" + plugin.getName() + " - Connection pool]");
         dataSource.setConnectionTestQuery("SELECT 1");
         dataSource.addDataSourceProperty("useSSL", false);
         dataSource.addDataSourceProperty("cachePrepStmts", true);
