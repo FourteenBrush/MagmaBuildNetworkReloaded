@@ -156,17 +156,17 @@ public class VanishManager {
     }
 
     public void toggleVanish(Player target) { // intentionally chosen for the internal methods, avoid double checking
-        if (isVanished(target)) { // un-vanish
+        if (vanished.remove(target.getUniqueId())) {
             unVanishInternal(target, false);
-        } else {
+        } else if (vanished.add(target.getUniqueId())) {
             vanishInternal(target, true, false);
         }
     }
 
     public void toggleVanishFor(Player target, CommandSender executor) { // intentionally chosen for the internal methods, avoid double checking
-        if (isVanished(target)) { // un-vanish
+        if (vanished.remove(target.getUniqueId())) { // un-vanish
              unVanishOtherInternal(target, executor);
-        } else {
+        } else if (vanished.add(target.getUniqueId())) {
             vanishOtherInternal(target, executor);
         }
     }
