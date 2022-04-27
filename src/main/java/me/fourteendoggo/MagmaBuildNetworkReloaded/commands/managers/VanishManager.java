@@ -29,7 +29,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-public class VanishManager {
+public class VanishManager implements Listener {
     private final MBNPlugin plugin;
     private final Set<UUID> vanished;
     private final BossBar bossBar;
@@ -41,7 +41,7 @@ public class VanishManager {
         bossBar = Bukkit.createBossBar("Vanished", BarColor.BLUE, BarStyle.SOLID);
         bossBar.setProgress(1);
         namespacedKey = new NamespacedKey(plugin, "vanished");
-        Bukkit.getPluginManager().registerEvents(new VanishListener(), plugin);
+        Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
     private boolean isVanished(Entity entity) {
@@ -49,8 +49,9 @@ public class VanishManager {
     }
 
     public void vanish(Player target, boolean showMessage, boolean showQuitMessage) {
-        if (!vanishSucceeded(target, Lang.VANISH_ALREADY_VANISHED)) return;
-        vanishInternal(target, showMessage, showQuitMessage);
+        if (vanishSucceeded(target, Lang.VANISH_ALREADY_VANISHED)) {
+            vanishInternal(target, showMessage, showQuitMessage);
+        }
     }
 
     private void vanishInternal(Player target, boolean showMessage, boolean showQuitMessage) {
@@ -79,16 +80,16 @@ public class VanishManager {
     }
 
     private void handleVanish(Player target, boolean showQuitMessage) {
-        Bukkit.getOnlinePlayers().forEach(p -> {
-            if (!isVanished(p)) {
-                p.hidePlayer(plugin, target);
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (!isVanished(player)) {
+                player.hidePlayer(plugin, target);
             }
-            if (!p.equals(target) && Permission.MODERATOR.has(p)) {
-                Lang.VANISH_ANNOUNCE.sendTo(p, target.getName());
+            if (!player.equals(target) && Permission.MODERATOR.has(player)) {
+                Lang.VANISH_ANNOUNCE.sendTo(player, target.getName());
             } else if (showQuitMessage) { // quit message will be shown to the target too
-                Lang.LEAVE_MESSAGE.sendTo(p, target.getName());
+                Lang.LEAVE_MESSAGE.sendTo(player, target.getName());
             }
-        });
+        }
         handleCommon(target, true);
         int status = 1; // 1 means vanish without nightvision applied, 2 with
         if (plugin.getConfig().getBoolean("vanish.nightvision")) {
@@ -99,8 +100,9 @@ public class VanishManager {
     }
 
     public void unVanish(Player target, boolean showJoinMessage) {
-        if (!unVanishSucceeded(target, Lang.VANISH_ALREADY_VISIBLE)) return;
-        unVanishInternal(target, showJoinMessage);
+        if (unVanishSucceeded(target, Lang.VANISH_ALREADY_VISIBLE)) {
+            unVanishInternal(target, showJoinMessage);
+        }
     }
 
     private void unVanishInternal(Player target, boolean showJoinMessage) {
@@ -127,14 +129,14 @@ public class VanishManager {
     }
 
     private void handleUnVanish(Player target, boolean showJoinMessage) {
-        Bukkit.getOnlinePlayers().forEach(p -> {
-            p.showPlayer(plugin, target);
-            if (!p.equals(target) && Permission.MODERATOR.has(p)) {
-                Lang.VANISH_BACK_VISIBLE_ANNOUNCE.sendTo(p, target.getName());
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            player.showPlayer(plugin, target);
+            if (!player.equals(target) && Permission.MODERATOR.has(player)) {
+                Lang.VANISH_BACK_VISIBLE_ANNOUNCE.sendTo(player, target.getName());
             } else if (showJoinMessage) { // join message will be shown to the target too
-                Lang.JOIN_MESSAGE.sendTo(p, target.getName());
+                Lang.JOIN_MESSAGE.sendTo(player, target.getName());
             }
-        });
+        }
         handleCommon(target, false);
         byte status = target.getPersistentDataContainer().getOrDefault(namespacedKey, PersistentDataType.BYTE, (byte)0);
         if (status == 2) {
@@ -187,77 +189,73 @@ public class VanishManager {
         }
     }
 
-    private class VanishListener implements Listener {
-
-        @EventHandler
-        public void onJoin(PlayerJoinEvent event) {
-            Player player = event.getPlayer();
-            byte status = event.getPlayer().getPersistentDataContainer().getOrDefault(namespacedKey, PersistentDataType.BYTE, (byte)0);
-            if (status == 1 || status == 2) {
-                vanish(player, false, false);
-                sendMessageForStaffExclude(Lang.JOINED_VANISHED.get(player.getName()), player);
-                event.setJoinMessage(null);
-            } else {
-                event.setJoinMessage(Lang.JOIN_MESSAGE.get(player.getName()));
-            }
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        byte status = event.getPlayer().getPersistentDataContainer().getOrDefault(namespacedKey, PersistentDataType.BYTE, (byte)0);
+        if (status == 1 || status == 2) {
+            vanish(player, false, false);
+            sendMessageForStaffExclude(Lang.JOINED_VANISHED.get(player.getName()), player);
+            event.setJoinMessage(null);
+        } else {
+            event.setJoinMessage(Lang.JOIN_MESSAGE.get(player.getName()));
         }
+    }
 
-        @EventHandler
-        public void onQuit(PlayerQuitEvent event) {
-            Player player = event.getPlayer();
-            if (vanished.remove(player.getUniqueId())) {
-                sendMessageForStaffExclude(Lang.LEFT_VANISHED.get(player.getName()), player);
-                event.setQuitMessage(null);
-            } else {
-                event.setQuitMessage(Lang.LEAVE_MESSAGE.get(event.getPlayer().getName()));
-            }
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        if (vanished.remove(player.getUniqueId())) {
+            sendMessageForStaffExclude(Lang.LEFT_VANISHED.get(player.getName()), player);
+            event.setQuitMessage(null);
+        } else {
+            event.setQuitMessage(Lang.LEAVE_MESSAGE.get(player.getName()));
         }
+    }
 
-        @EventHandler
-        public void onGameModeChange(PlayerGameModeChangeEvent event) {
-            GameMode gm = event.getNewGameMode();
-            if ((gm == GameMode.SURVIVAL || gm == GameMode.ADVENTURE) && isVanished(event.getPlayer())) {
-                allowFlight(event.getPlayer());
-            }
+    @EventHandler
+    public void onGameModeChange(PlayerGameModeChangeEvent event) {
+        GameMode gm = event.getNewGameMode();
+        if ((gm == GameMode.SURVIVAL || gm == GameMode.ADVENTURE) && isVanished(event.getPlayer())) {
+            allowFlight(event.getPlayer());
         }
+    }
 
-        @SuppressWarnings("ConstantConditions")
-        @EventHandler
-        public void onTeleport(PlayerTeleportEvent event) {
-            String fromWorld = event.getFrom().getWorld().getName();
-            String destinationWorld = event.getTo().getWorld().getName();
-            if (!fromWorld.equals(destinationWorld) && isVanished(event.getPlayer())) {
-                allowFlight(event.getPlayer());
-            }
+    @SuppressWarnings("ConstantConditions")
+    @EventHandler
+    public void onTeleport(PlayerTeleportEvent event) {
+        String fromWorld = event.getFrom().getWorld().getName();
+        String destinationWorld = event.getTo().getWorld().getName();
+        if (!fromWorld.equals(destinationWorld) && isVanished(event.getPlayer())) {
+            allowFlight(event.getPlayer());
         }
+    }
 
-        @EventHandler
-        public void onFoodLevelChange(FoodLevelChangeEvent event) {
-            if (event.getFoodLevel() < event.getEntity().getFoodLevel() && isVanished(event.getEntity())) {
-                event.setCancelled(true);
-            }
+    @EventHandler
+    public void onFoodLevelChange(FoodLevelChangeEvent event) {
+        if (event.getFoodLevel() < event.getEntity().getFoodLevel() && isVanished(event.getEntity())) {
+            event.setCancelled(true);
         }
+    }
 
-        @EventHandler
-        public void onPickup(EntityPickupItemEvent event) {
-            if (event.getEntity() instanceof Player player && isVanished(player)) {
-                event.setCancelled(true);
-            }
+    @EventHandler
+    public void onPickup(EntityPickupItemEvent event) {
+        if (event.getEntity() instanceof Player player && isVanished(player)) {
+            event.setCancelled(true);
         }
+    }
 
-        private void allowFlight(Player target) {
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                target.setAllowFlight(true);
-                target.setFlying(true);
-            });
-        }
+    private void allowFlight(Player target) {
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            target.setAllowFlight(true);
+            target.setFlying(true);
+        });
+    }
 
-        private void sendMessageForStaffExclude(String message, Player exclude) {
-            Bukkit.getOnlinePlayers().forEach(player -> {
-                if (!player.equals(exclude) && Permission.MODERATOR.has(player)) {
-                    player.sendMessage(message);
-                }
-            });
+    private void sendMessageForStaffExclude(String message, Player exclude) {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (player.equals(exclude)) continue;
+            player.sendMessage(message);
         }
     }
 }

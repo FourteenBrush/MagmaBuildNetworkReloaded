@@ -1,7 +1,6 @@
 package me.fourteendoggo.MagmaBuildNetworkReloaded.user;
 
 import me.fourteendoggo.MagmaBuildNetworkReloaded.MBNPlugin;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Permission;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.Utils;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -39,10 +38,6 @@ public class User {
 
     public Player getPlayer() {
         return player.get();
-    }
-
-    public boolean isStaff() {
-        return Permission.MODERATOR.has(this);
     }
 
     public void onDataLoadComplete(MBNPlugin plugin, UserSnapshot loadedSnapshot) {

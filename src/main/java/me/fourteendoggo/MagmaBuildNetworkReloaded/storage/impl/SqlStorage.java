@@ -157,6 +157,7 @@ public class SqlStorage implements Storage {
         return new Home(name, owner, location);
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Override
     public void createHome(Home home) throws SQLException {
         try (Connection conn = connectionFactory.getConnection();

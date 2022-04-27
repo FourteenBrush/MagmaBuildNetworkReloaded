@@ -120,6 +120,10 @@ public abstract class NewCommandBase implements CommandExecutor {
         });
     }
 
+    protected void addSubCommand(String name, SubCommand subCommand) {
+
+    }
+
     protected static List<String> tabComplete(String token, String previous, String[] shouldMatch, Collection<String> iterable) {
         if (getIndex(previous, shouldMatch) >= shouldMatch.length) return EMPTY_TAB_COMPLETE;
         return tabComplete(token, iterable);

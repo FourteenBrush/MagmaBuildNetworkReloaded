@@ -3,8 +3,6 @@ package me.fourteendoggo.MagmaBuildNetworkReloaded.storage;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.chat.ChatChannel;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.kingdom.Kingdom;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.user.UserSnapshot;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.ThrowingRunnable;
-import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.ThrowingSupplier;
 import me.fourteendoggo.MagmaBuildNetworkReloaded.utils.records.Home;
 
 import java.util.UUID;
@@ -124,5 +122,17 @@ public class DelegatingStorage {
 
     private void handleException(Exception e, String errorMessage) {
         logger.log(Level.SEVERE, errorMessage + " Storage implementation is " + getStorageType().getDescription(), e);
+    }
+
+    @FunctionalInterface
+    public interface ThrowingRunnable {
+
+        void run() throws Exception;
+    }
+
+    @FunctionalInterface
+    public interface ThrowingSupplier<T> {
+
+        T get() throws Exception;
     }
 }

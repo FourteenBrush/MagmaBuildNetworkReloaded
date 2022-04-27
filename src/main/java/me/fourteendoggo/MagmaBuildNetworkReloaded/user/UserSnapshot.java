@@ -17,7 +17,7 @@ public class UserSnapshot {
     private final ChatProfile chatProfile;
     private final StatisticsProfile statisticsProfile;
     private final MembershipProfile membershipProfile;
-    private final Map<CooldownType, Cooldown> cooldowns = new HashMap<>(); // TODO
+    private final Map<CooldownType, Cooldown> cooldowns = new HashMap<>(); // TODO load them
     private final Set<Home> homes;
 
     public UserSnapshot(UUID id, ChatProfile chatProfile, StatisticsProfile statisticsProfile, MembershipProfile membershipProfile, Set<Home> homes) {
@@ -32,7 +32,7 @@ public class UserSnapshot {
         return new UserSnapshot(
                 id,
                 new ChatProfile(),
-                new StatisticsProfile(),
+                new StatisticsProfile(), // TODO change kingdom to null
                 new MembershipProfile(new Kingdom("test", KingdomType.GRAUDOR, null), KingdomRank.INHABITANT),
                 new HashSet<>());
     }
@@ -67,7 +67,7 @@ public class UserSnapshot {
 
     @UnmodifiableView
     public Set<Home> getHomes() {
-        return Collections.unmodifiableSet(homes);
+        return new HashSet<>(homes);
     }
 
     public Home getHome(String name) {
